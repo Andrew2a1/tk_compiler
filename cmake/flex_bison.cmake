@@ -1,0 +1,22 @@
+macro(setup_flex_bison FLEX_INPUT BISON_INPUT FLEX_OUTPUT_SRC BISON_OUTPUT_SRC BISON_OUTPUT_HEADER)
+    find_package(BISON)
+    find_package(FLEX)
+
+    if(FLEX_FOUND AND BISON_FOUND)
+        set(PARSER_TARGET parser)
+        set(SCANNER_TARGET scanner)
+
+        BISON_TARGET(${PARSER_TARGET}
+            ${BISON_INPUT}
+            ${CMAKE_CURRENT_SOURCE_DIR}/${BISON_OUTPUT_SRC}
+            DEFINES_FILE ${CMAKE_CURRENT_SOURCE_DIR}/${BISON_OUTPUT_HEADER}
+        )
+
+        FLEX_TARGET(${SCANNER_TARGET}
+            ${FLEX_INPUT}
+            ${CMAKE_CURRENT_SOURCE_DIR}/${FLEX_OUTPUT_SRC}
+        )
+
+        ADD_FLEX_BISON_DEPENDENCY(${SCANNER_TARGET} ${PARSER_TARGET})
+    endif()
+endmacro()
