@@ -1,27 +1,39 @@
 project(compiler C CXX)
 
 set(SOURCES
-    src/test.cpp
-    src/lexer.cpp
-    src/parser.cpp
+    src/symbol.c
+    src/error.c
 )
 
 set(HEADERS
-    include/parser.h
+    include/symbol.h
+    include/global.h
 )
 
 set(TESTS
     tests/test.cpp
 )
 
-setup_flex_bison(
+set(FLEX_BISON_FILES
     gen/lexer.l
     gen/parser.y
-    src/lexer.cpp
-    src/parser.cpp
-    include/parser.h
 )
 
-add_library(${PROJECT_NAME} ${SOURCES} ${HEADERS})
+setup_flex_bison(
+    ${FLEX_BISON_FILES}
+    lexer.cpp
+    parser.cpp
+    parser.h
+)
+
+add_library(${PROJECT_NAME}
+    ${SOURCES}
+    ${HEADERS}
+    ${BISON_${PARSER_TARGET}_OUTPUTS}
+    ${FLEX_${SCANNER_TARGET}_OUTPUTS}
+)
+
+target_include_directories(${PROJECT_NAME} PUBLIC ${GENERATED_SOURCES_DIR})
+
 set_common_properties(${PROJECT_NAME})
 setup_tests(${PROJECT_NAME} ${TESTS})

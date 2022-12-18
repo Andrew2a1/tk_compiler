@@ -1,1 +1,10 @@
-int main(int argc, char const *argv[]) { return 0; }
+#include <parser.h>
+
+extern int yylex_destroy(void);
+
+int main()
+{
+    yyparse();
+    yylex_destroy();
+    return 0;
+}
