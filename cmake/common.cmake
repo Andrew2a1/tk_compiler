@@ -25,8 +25,8 @@ function(setup_tests TARGET)
 
     add_executable(${TEST_TARGET} ${ARGN})
     target_link_libraries(${TEST_TARGET} PRIVATE GTest::gtest GTest::gtest_main)
+    set_common_properties(${TEST_TARGET})
 
     include(GoogleTest)
     gtest_discover_tests(${TEST_TARGET})
-    set_common_properties(${TEST_TARGET})
 endfunction()
