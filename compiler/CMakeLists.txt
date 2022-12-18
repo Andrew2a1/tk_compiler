@@ -23,8 +23,5 @@ setup_flex_bison(
 )
 
 add_library(${PROJECT_NAME} ${SOURCES} ${HEADERS})
-target_link_libraries(${PROJECT_NAME})
-target_include_directories(${PROJECT_NAME} PUBLIC include)
-
 set_common_properties(${PROJECT_NAME})
 setup_tests(${PROJECT_NAME} ${TESTS})

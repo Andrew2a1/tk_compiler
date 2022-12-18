@@ -7,13 +7,15 @@ function(set_common_properties TARGET)
         RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin"
     )
 
+    target_include_directories(${TARGET} PUBLIC include)
+
     if (MSVC)
         target_compile_options(${APP_TARGET_NAME} PRIVATE /W4 $<IF:$<CONFIG:Debug>,/Zi,/O2>)
     else()
         target_compile_options(${TARGET} PRIVATE -Wall -Wextra -Wpedantic $<$<CONFIG:RELEASE>:-O3> $<$<CONFIG:DEBUG>:-O0 -g>)
+        target_link_options(${TARGET} PRIVATE $<$<CONFIG:RELEASE>:-s>)
     endif()
 
-    target_link_options(${TARGET} PRIVATE $<$<CONFIG:RELEASE>:-s>)
     install(TARGETS ${TARGET})
 endfunction()
 
