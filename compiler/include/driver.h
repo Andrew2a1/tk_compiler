@@ -15,14 +15,15 @@ class Driver
 public:
     yy::location location;
     std::string filename;
-    std::string result;
 
     bool trace_scanning = false;
     bool trace_parsing = false;
 
 public:
+    explicit Driver(bool trace_scanning = false, bool trace_parsing = false);
     virtual ~Driver();
-    int parse(const std::string& filename);
+
+    int parse(const std::string& input_filename = "-", const std::string& output_filename = "-");
 
 private:
     void scan_begin();

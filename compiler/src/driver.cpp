@@ -2,10 +2,12 @@
 
 #include "parser.h"
 
-int Driver::parse(const std::string& filename)
+Driver::Driver(bool trace_scanning, bool trace_parsing) : trace_scanning(trace_scanning), trace_parsing(trace_parsing) {}
+
+int Driver::parse(const std::string& input_filename, const std::string& output_filename)
 {
-    this->filename = filename;
-    location.initialize(&this->filename);
+    filename = input_filename;
+    location.initialize(&filename);
 
     scan_begin();
     yy::parser parse(*this);

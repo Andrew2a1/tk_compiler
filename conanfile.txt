@@ -1,5 +1,6 @@
 [requires]
 gtest/cci.20210126
+cli11/2.3.0
 
 [generators]
 CMakeDeps
