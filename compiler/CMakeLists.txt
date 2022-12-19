@@ -1,13 +1,11 @@
 project(compiler C CXX)
 
 set(SOURCES
-    src/symbol.c
-    src/error.c
+    src/driver.cpp
 )
 
 set(HEADERS
-    include/symbol.h
-    include/global.h
+    include/driver.h
 )
 
 set(TESTS

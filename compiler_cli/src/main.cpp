@@ -1,10 +1,17 @@
-#include <parser.h>
-
-extern int yylex_destroy(void);
+#include <driver.h>
 
 int main()
 {
-    yyparse();
-    yylex_destroy();
-    return 0;
+    Driver drv;
+    drv.trace_parsing = true;
+    drv.trace_scanning = true;
+
+    int result = drv.parse("test.txt");
+    if (result == 0)
+    {
+        std::cout << std::endl << "RESULT: " << std::endl;
+        std::cout << drv.result << std::endl;
+    }
+
+    return result;
 }
