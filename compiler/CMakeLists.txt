@@ -9,7 +9,7 @@ set(HEADERS
 )
 
 set(TESTS
-    tests/test.cpp
+    tests/parse_syntax.cpp
 )
 
 set(FLEX_BISON_FILES

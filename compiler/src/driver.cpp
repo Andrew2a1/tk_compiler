@@ -2,7 +2,7 @@
 
 #include "parser.h"
 
-int Driver::parse(const std::string &filename)
+int Driver::parse(const std::string& filename)
 {
     this->filename = filename;
     location.initialize(&this->filename);

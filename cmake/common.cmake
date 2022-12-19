@@ -24,7 +24,8 @@ function(setup_tests TARGET)
     find_package(GTest REQUIRED CONFIG)
 
     add_executable(${TEST_TARGET} ${ARGN})
-    target_link_libraries(${TEST_TARGET} PRIVATE GTest::gtest GTest::gtest_main)
+    target_link_libraries(${TEST_TARGET} PRIVATE ${TARGET} GTest::gtest GTest::gtest_main)
+    target_compile_definitions(${TEST_TARGET} PRIVATE TEST_DATA_DIRECOTRY="${CMAKE_CURRENT_SOURCE_DIR}/tests/test_data")
     set_common_properties(${TEST_TARGET})
 
     include(GoogleTest)

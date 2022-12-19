@@ -1,5 +1,7 @@
 #pragma once
 
+#include <cstdio>
+#include <fstream>
 #include <map>
 #include <string>
 
@@ -18,16 +20,11 @@ public:
     bool trace_scanning = false;
     bool trace_parsing = false;
 
-private:
-    bool error = false;
-
 public:
     virtual ~Driver();
-
     int parse(const std::string& filename);
-    void set_error() { error = true; };
-    bool get_error() const { return error; }
 
+private:
     void scan_begin();
     void scan_end();
 };
