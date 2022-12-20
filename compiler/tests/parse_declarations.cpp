@@ -31,7 +31,7 @@ TEST_F(ParserParseDeclarationsTest, EmptyProgramWithOneVariableDeclaration)
 
 TEST_F(ParserParseDeclarationsTest, EmptyProgramWithFourVariableDeclaration)
 {
-    const auto input_filepath = std::filesystem::path{TEST_DATA_DIRECOTRY} / "simple_from_web.txt";
+    const auto input_filepath = std::filesystem::path{TEST_DATA_DIRECOTRY} / "four_var.txt";
 
     Driver driver;
     driver.parse(input_filepath);
