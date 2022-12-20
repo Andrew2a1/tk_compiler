@@ -30,6 +30,10 @@ jobs:
           apt-get update -y
           apt-get install python3-pip -y
 
+      - name: Setup Bison and Flex
+        run: |
+          apt-get install flex bison -y
+
       - name: Setup Conan
         run: python3 -m pip install conan
 
