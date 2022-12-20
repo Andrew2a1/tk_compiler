@@ -1,0 +1,44 @@
+name: Test on Linux
+
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  build_and_test:
+    name: Build and Test
+    runs-on: ubuntu-22.04
+    container:
+      image: gcc:12.2
+
+    defaults:
+      run:
+        shell: bash
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Setup CMake
+        uses: jwlawson/actions-setup-cmake@v1.13
+        with:
+          cmake-version: "3.22.x"
+
+      - name: Setup Python
+        run: |
+          apt-get update -y
+          apt-get install python3-pip -y
+
+      - name: Setup Conan
+        run: python3 -m pip install conan
+
+      - name: Configure build
+        run: cmake --preset gcc_debug -B "build"
+
+      - name: Build all
+        run: cmake --build "build" -j "$(nproc)"
+
+      - name: Run tests
+        working-directory: build
+        run: ctest --verbose -j "$(nproc)"
