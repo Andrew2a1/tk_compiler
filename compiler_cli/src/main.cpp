@@ -2,6 +2,9 @@
 
 #include <CLI/CLI.hpp>
 #include <filesystem>
+#include <tabulate/table.hpp>
+
+void print_symbol_table(const SymbolTable &table);
 
 int main(int argc, char *argv[])
 {
@@ -31,6 +34,46 @@ int main(int argc, char *argv[])
     {
         std::cerr << "Compilation failed." << std::endl;
     }
+    else
+    {
+        print_symbol_table(driver.symbol_table);
+    }
 
     return result;
+}
+
+std::string var_type_to_str(VariableType var_type)
+{
+    switch (var_type)
+    {
+        case VariableType::Integer:
+            return "integer";
+    }
+    return "UNKNOWN";
+}
+
+std::string symbol_type_to_str(SymbolType symbol_type)
+{
+    switch (symbol_type)
+    {
+        case SymbolType::Constant:
+            return "const";
+        case SymbolType::Variable:
+            return "var";
+    }
+    return "UNKNOWN";
+}
+
+void print_symbol_table(const SymbolTable &table)
+{
+    tabulate::Table symtable;
+    symtable.add_row({"ID", "Type", "Var Type", "Value", "Offset"});
+
+    for (const auto &symbol : table.symbols)
+    {
+        symtable.add_row(
+            {symbol.id, symbol_type_to_str(symbol.symbol_type), var_type_to_str(symbol.var_type), std::to_string(symbol.value), std::to_string(symbol.offset)});
+    }
+
+    std::cout << symtable << std::endl;
 }

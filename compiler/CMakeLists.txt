@@ -2,14 +2,17 @@ project(compiler C CXX)
 
 set(SOURCES
     src/driver.cpp
+    src/symbol_table.cpp
 )
 
 set(HEADERS
     include/driver.h
+    include/symbol_table.h
 )
 
 set(TESTS
     tests/parse_syntax.cpp
+    tests/parse_declarations.cpp
 )
 
 set(FLEX_BISON_FILES

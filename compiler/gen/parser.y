@@ -13,6 +13,8 @@
 %param { Driver& drv }
 
 %code requires {
+    #include "symbol_table.h"
+    #include <stdexcept>
     class Driver;
 }
 
@@ -47,6 +49,14 @@
 
 %token <std::string> ID
 %token <int> NUMBER
+%nterm <std::vector<std::string>> identifier_list
+%nterm <VariableType> type
+%nterm <int> variable
+%nterm <int> expression
+%nterm <std::vector<int>> expression_list
+%nterm <int> simple_expression
+%nterm <int> term
+%nterm <int> factor
 
 %%
 
@@ -59,17 +69,17 @@ program:
     ;
 
 identifier_list:
-    ID
-    | identifier_list COMMA ID
+    ID { $$.push_back($1); }
+    | identifier_list COMMA ID { $$ = $1; $$.push_back($3); }
     ;
 
 declarations:
-    declarations VAR identifier_list COLON type SEMICOL
+    declarations VAR identifier_list COLON type SEMICOL { drv.symbol_table.create_variables($3, $5); }
     | %empty
     ;
 
 type:
-    INT
+    INT { $$ = VariableType::Integer; }
     ;
 
 // subprogram_declarations:
@@ -94,9 +104,19 @@ statement_list:
     ;
 
 statement:
-    variable ASSIGN expression
-    | READ LPAREN identifier_list RPAREN
-    | WRITE LPAREN expression_list RPAREN
+    variable ASSIGN expression  { drv.gencode("mov.i", $3, $1); }
+    | READ LPAREN identifier_list RPAREN {
+        for(const auto &id: $3)
+        {
+            drv.gencode("read.i", drv.symbol_table.find_symbol(id));
+        }
+    }
+    | WRITE LPAREN expression_list RPAREN {
+        for(const auto &id: $3)
+        {
+            drv.gencode("write.i", id);
+        }
+    }
     // | procedure_statement
     // | compound_statement
     // | IF expression THEN statement ELSE statement
@@ -104,13 +124,13 @@ statement:
     ;
 
 variable:
-    ID
+    ID { $$ = drv.symbol_table.find_symbol($1); if($$ == -1) throw std::runtime_error("Variable " + $1 + " has not been declarated"); }
     // | ID '[' expression ']'
     ;
 
 expression_list:
-    expression
-    | expression_list COMMA expression
+    expression { $$.push_back($1); }
+    | expression_list COMMA expression { $$ = $1; $$.push_back($3); }
     ;
 
 expression:
@@ -120,27 +140,56 @@ expression:
 
 simple_expression:
     term
-    | MINUS term
-    | PLUS term
-    | simple_expression MINUS term
-    | simple_expression PLUS term
+    | MINUS term {
+        const int zero_const = drv.symbol_table.add_constant(VariableType::Integer, 0);
+        const int result = drv.symbol_table.add_tmp(VariableType::Integer);
+        drv.gencode("sub.i", zero_const, $2, result);
+        $$ = result;
+        }
+    | PLUS term { $$ = $2; }
+    | simple_expression MINUS term {
+        const int result = drv.symbol_table.add_tmp(VariableType::Integer);
+        drv.gencode("sub.i", $1, $3, result);
+        $$ = result;
+        }
+    | simple_expression PLUS term {
+        const int result = drv.symbol_table.add_tmp(VariableType::Integer);
+        drv.gencode("add.i", $1, $3, result);
+        $$ = result;
+        }
     // | simple_expression OR term
     ;
 
 term:
     factor
-    | term STAR factor
-    | term SLASH factor
-    | term DIV factor
-    | term MOD factor
+    | term STAR factor {
+        const int result = drv.symbol_table.add_tmp(VariableType::Integer);
+        drv.gencode("mul.i", $1, $3, result);
+        $$ = result;
+        }
+    | term SLASH factor {
+        const int result = drv.symbol_table.add_tmp(VariableType::Integer);
+        drv.gencode("div.i", $1, $3, result);
+        $$ = result;
+        }
+    | term DIV factor {
+        const int result = drv.symbol_table.add_tmp(VariableType::Integer);
+        drv.gencode("div.i", $1, $3, result);
+        $$ = result;
+        }
+    | term MOD factor {
+        const int result = drv.symbol_table.add_tmp(VariableType::Integer);
+        drv.gencode("mod.i", $1, $3, result);
+        $$ = result;
+        }
     // | term AND factor
     ;
 
 factor:
     variable
-    | ID LPAREN expression_list RPAREN
-    | NUMBER
-    | LPAREN expression RPAREN
+    // | ID LPAREN expression_list RPAREN
+    | NUMBER { $$ = drv.symbol_table.add_constant(VariableType::Integer, $1); }
+    | LPAREN expression RPAREN { $$ = $2; }
     // | NOT factor
     ;
 %%
