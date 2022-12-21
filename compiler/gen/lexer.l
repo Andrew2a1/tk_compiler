@@ -16,7 +16,7 @@ blank [ \t\r]
 
 %{
     // Code run each time a pattern is matched.
-    #define YY_USER_ACTION  loc.columns(yyleng);
+    #define YY_USER_ACTION loc.columns(yyleng);
 %}
 
 %%
@@ -37,6 +37,8 @@ begin     return yy::parser::make_BEGIN(loc);
 end       return yy::parser::make_END(loc);
 div       return yy::parser::make_DIV(loc);
 mod       return yy::parser::make_MOD(loc);
+or        return yy::parser::make_OR(loc);
+and       return yy::parser::make_AND(loc);
 :=        return yy::parser::make_ASSIGN(loc);
 \+        return yy::parser::make_PLUS(loc);
 \-        return yy::parser::make_MINUS(loc);

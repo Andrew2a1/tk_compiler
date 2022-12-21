@@ -13,6 +13,8 @@ set(HEADERS
 set(TESTS
     tests/parse_syntax.cpp
     tests/parse_declarations.cpp
+    tests/parse_expressions.cpp
+    tests/generate_output.cpp
 )
 
 set(FLEX_BISON_FILES

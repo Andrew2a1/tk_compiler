@@ -41,6 +41,8 @@
     DOT     "."
     COMMA   ","
     VAR     "var"
+    OR      "or"
+    AND     "and"
     BEGIN   "begin"
     END     "end"
     READ    "read"
@@ -48,8 +50,8 @@
 ;
 
 %token <std::string> ID
-%token <int> NUMBER
 %nterm <std::vector<std::string>> identifier_list
+%token <int> NUMBER
 %nterm <VariableType> type
 %nterm <int> variable
 %nterm <int> expression
@@ -65,7 +67,7 @@ program:
     declarations
     // subprogram_declarations
     compound_statement
-    DOT
+    DOT { drv.gencode("exit"); }
     ;
 
 identifier_list:
@@ -124,7 +126,7 @@ statement:
     ;
 
 variable:
-    ID { $$ = drv.symbol_table.find_symbol($1); if($$ == -1) throw std::runtime_error("Variable " + $1 + " has not been declarated"); }
+    ID { $$ = drv.symbol_table.find_symbol($1); if($$ < 0) throw std::runtime_error("Variable " + $1 + " has not been declarated"); }
     // | ID '[' expression ']'
     ;
 
@@ -142,47 +144,55 @@ simple_expression:
     term
     | MINUS term {
         const int zero_const = drv.symbol_table.add_constant(VariableType::Integer, 0);
-        const int result = drv.symbol_table.add_tmp(VariableType::Integer);
-        drv.gencode("sub.i", zero_const, $2, result);
-        $$ = result;
+        const int result_var = drv.symbol_table.add_tmp(VariableType::Integer);
+        drv.gencode("sub.i", zero_const, $2, result_var);
+        $$ = result_var;
         }
     | PLUS term { $$ = $2; }
     | simple_expression MINUS term {
-        const int result = drv.symbol_table.add_tmp(VariableType::Integer);
-        drv.gencode("sub.i", $1, $3, result);
-        $$ = result;
+        const int result_var = drv.symbol_table.add_tmp(VariableType::Integer);
+        drv.gencode("sub.i", $1, $3, result_var);
+        $$ = result_var;
         }
     | simple_expression PLUS term {
-        const int result = drv.symbol_table.add_tmp(VariableType::Integer);
-        drv.gencode("add.i", $1, $3, result);
-        $$ = result;
+        const int result_var = drv.symbol_table.add_tmp(VariableType::Integer);
+        drv.gencode("add.i", $1, $3, result_var);
+        $$ = result_var;
         }
-    // | simple_expression OR term
+    | simple_expression OR term {
+        const int result_var = drv.symbol_table.add_tmp(VariableType::Integer);
+        drv.gencode("or.i", $1, $3, result_var);
+        $$ = result_var;
+        }
     ;
 
 term:
     factor
     | term STAR factor {
-        const int result = drv.symbol_table.add_tmp(VariableType::Integer);
-        drv.gencode("mul.i", $1, $3, result);
-        $$ = result;
+        const int result_var = drv.symbol_table.add_tmp(VariableType::Integer);
+        drv.gencode("mul.i", $1, $3, result_var);
+        $$ = result_var;
         }
     | term SLASH factor {
-        const int result = drv.symbol_table.add_tmp(VariableType::Integer);
-        drv.gencode("div.i", $1, $3, result);
-        $$ = result;
+        const int result_var = drv.symbol_table.add_tmp(VariableType::Integer);
+        drv.gencode("div.i", $1, $3, result_var);
+        $$ = result_var;
         }
     | term DIV factor {
-        const int result = drv.symbol_table.add_tmp(VariableType::Integer);
-        drv.gencode("div.i", $1, $3, result);
-        $$ = result;
+        const int result_var = drv.symbol_table.add_tmp(VariableType::Integer);
+        drv.gencode("div.i", $1, $3, result_var);
+        $$ = result_var;
         }
     | term MOD factor {
-        const int result = drv.symbol_table.add_tmp(VariableType::Integer);
-        drv.gencode("mod.i", $1, $3, result);
-        $$ = result;
+        const int result_var = drv.symbol_table.add_tmp(VariableType::Integer);
+        drv.gencode("mod.i", $1, $3, result_var);
+        $$ = result_var;
         }
-    // | term AND factor
+    | term AND factor {
+        const int result_var = drv.symbol_table.add_tmp(VariableType::Integer);
+        drv.gencode("and.i", $1, $3, result_var);
+        $$ = result_var;
+        }
     ;
 
 factor:

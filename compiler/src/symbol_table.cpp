@@ -48,7 +48,7 @@ int SymbolTable::type_size(VariableType var_type) const
 
 int SymbolTable::add_constant(VariableType var_type, int value)
 {
-    const SymbolEntry new_entry{"CONST", var_type, SymbolType::Constant, value, -1};
+    const SymbolEntry new_entry{"-", var_type, SymbolType::Constant, value, -1};
     symbols.push_back(new_entry);
     return symbols.size() - 1;
 }

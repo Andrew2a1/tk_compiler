@@ -35,17 +35,19 @@ int Driver::parse(const std::string& input_filename, const std::string& output_f
     return res;
 }
 
+void Driver::gencode(const std::string& code) { *output << code << std::endl; }
+
 void Driver::gencode(const std::string& code, int op1)
 {
     const auto& symbol1 = symbol_table.symbols[op1];
-    *output << code << ',' << symbol1.as_operand() << std::endl;
+    *output << code << ' ' << symbol1.as_operand() << std::endl;
 }
 
 void Driver::gencode(const std::string& code, int op1, int op2)
 {
     const auto& symbol1 = symbol_table.symbols[op1];
     const auto& symbol2 = symbol_table.symbols[op2];
-    *output << code << ',' << symbol1.as_operand() << ',' << symbol2.as_operand() << std::endl;
+    *output << code << ' ' << symbol1.as_operand() << ',' << symbol2.as_operand() << std::endl;
 }
 
 void Driver::gencode(const std::string& code, int op1, int op2, int op3)
@@ -53,5 +55,5 @@ void Driver::gencode(const std::string& code, int op1, int op2, int op3)
     const auto& symbol1 = symbol_table.symbols[op1];
     const auto& symbol2 = symbol_table.symbols[op2];
     const auto& symbol3 = symbol_table.symbols[op3];
-    *output << code << ',' << symbol1.as_operand() << ',' << symbol2.as_operand() << ',' << symbol3.as_operand() << std::endl;
+    *output << code << ' ' << symbol1.as_operand() << ',' << symbol2.as_operand() << ',' << symbol3.as_operand() << std::endl;
 }

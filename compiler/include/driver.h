@@ -30,6 +30,7 @@ public:
 
     int parse(const std::string& input_filename = "-", const std::string& output_filename = "-");
 
+    void gencode(const std::string& code);
     void gencode(const std::string& code, int op1);
     void gencode(const std::string& code, int op1, int op2);
     void gencode(const std::string& code, int op1, int op2, int op3);
