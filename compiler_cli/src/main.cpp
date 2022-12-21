@@ -1,6 +1,7 @@
 #include <driver.h>
 
 #include <CLI/CLI.hpp>
+#include <clocale>
 #include <filesystem>
 #include <tabulate/table.hpp>
 
@@ -39,6 +40,7 @@ int main(int argc, char *argv[])
         print_symbol_table(driver.symbol_table);
     }
 
+    std::locale::global(std::locale("C"));
     return result;
 }
 
