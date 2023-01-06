@@ -120,17 +120,17 @@ statement:
     variable ASSIGN expression  {
         const auto& var = drv.symbol_table.symbols[$1];
         const auto& expr = drv.symbol_table.symbols[$3];
-        auto conversion_var = $3;
+        auto dest_var = $3;
 
         if(var.var_type != expr.var_type) {
-            conversion_var = drv.symbol_table.add_tmp(var.var_type);
+            dest_var = drv.symbol_table.add_tmp(var.var_type);
             if(expr.var_type == VariableType::Integer) {
-                drv.gencode("inttoreal.i", $3, conversion_var);
+                drv.gencode("inttoreal.i", $3, dest_var);
             } else {
-                drv.gencode("realtoint.r", $3, conversion_var);
+                drv.gencode("realtoint.r", $3, dest_var);
             }
         }
-        drv.gencode("mov" + var.instr_type_postfix(), conversion_var, $1);
+        drv.gencode("mov" + var.instr_type_postfix(), dest_var, $1);
     }
     | READ LPAREN identifier_list RPAREN {
         for(const auto &id: $3)
