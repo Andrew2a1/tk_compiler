@@ -16,6 +16,7 @@ set(TESTS
     tests/parse_declarations.cpp
     tests/parse_expressions.cpp
     tests/generate_output.cpp
+    tests/real_numbers.cpp
 )
 
 set(FLEX_BISON_FILES

@@ -7,9 +7,10 @@
 %option c++ noyywrap nounput noinput batch debug
 %option yyclass="Scanner"
 
-id  [a-zA-Z_][a-zA-Z0-9_]*
-int   [0-9]+
-blank [ \t\r]
+id      [a-zA-Z_][a-zA-Z0-9_]*
+int     [0-9]+
+real    {int}\.{int}([eE][-+]?{int})?
+blank   [ \t\r]
 
 %{
     // Code run each time a pattern is matched.
@@ -30,6 +31,7 @@ read      return yy::parser::make_READ(loc);
 write     return yy::parser::make_WRITE(loc);
 var       return yy::parser::make_VAR(loc);
 integer   return yy::parser::make_INT(loc);
+real      return yy::parser::make_REAL(loc);
 begin     return yy::parser::make_BEGIN(loc);
 end       return yy::parser::make_END(loc);
 div       return yy::parser::make_DIV(loc);
@@ -47,7 +49,8 @@ and       return yy::parser::make_AND(loc);
 \.        return yy::parser::make_DOT(loc);
 \(        return yy::parser::make_LPAREN(loc);
 \)        return yy::parser::make_RPAREN(loc);
-{int}     return yy::parser::make_NUMBER(std::stoi(yytext), loc);
+{real}    return yy::parser::make_REAL_NUMBER(std::stod(yytext), loc);
+{int}     return yy::parser::make_INT_NUMBER(std::stoi(yytext), loc);
 {id}      return yy::parser::make_ID(yytext, loc);
 <<EOF>>   return yy::parser::make_EOF(loc);
 %%

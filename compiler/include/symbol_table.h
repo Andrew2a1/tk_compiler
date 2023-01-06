@@ -12,6 +12,7 @@ enum class SymbolType
 enum class VariableType
 {
     Integer,
+    Real
 };
 
 struct SymbolEntry
@@ -19,10 +20,11 @@ struct SymbolEntry
     std::string id;
     VariableType var_type;
     SymbolType symbol_type;
-    int value = -1;
-    int offset = -1;
+    double value;
+    int offset;
 
     std::string as_operand() const;
+    std::string instr_type_postfix() const;
 };
 
 class SymbolTable
@@ -36,7 +38,9 @@ public:
 
     void create_variables(const std::vector<std::string> &variable_ids, VariableType var_type);
 
-    int add_constant(VariableType var_type, int value);
+    int add_constant(int value);
+    int add_constant(double value);
+
     int add_tmp(VariableType var_type);
 
     int find_symbol(const std::string &id) const;

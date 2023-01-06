@@ -27,12 +27,27 @@ int main(int argc, char *argv[])
         return app.exit(e);
     }
 
-    std::ifstream input(input_filename);
-    std::ofstream output(output_filename);
+    std::ifstream input_file(input_filename);
+    std::ofstream output_file(output_filename);
 
-    Driver driver(use_console(output_filename) ? std::cout : output, use_console(input_filename) ? std::cin : input);
+    std::istream &in = use_console(input_filename) ? std::cin : input_file;
+    std::ostream &out = use_console(output_filename) ? std::cout : output_file;
 
-    driver.set_debug_output(trace_scanning, trace_parsing);
+    if (in.fail())
+    {
+        std::cerr << "Cannot open file " << input_filename << " for reading" << std::endl;
+        return -1;
+    }
+
+    if (out.fail())
+    {
+        std::cerr << "Cannot open file " << input_filename << " for writing" << std::endl;
+        return -1;
+    }
+
+    Driver driver(out, in);
+    driver.set_location_filename(input_filename);
+    driver.set_debug(trace_scanning, trace_parsing);
     const int result = driver.parse();
 
     if (result != 0)

@@ -2,16 +2,32 @@
 
 #include <algorithm>
 #include <iostream>
+#include <sstream>
 #include <stdexcept>
 
 std::string SymbolEntry::as_operand() const
 {
+    std::stringstream ss;
     switch (symbol_type)
     {
         case SymbolType::Constant:
-            return "#" + std::to_string(value);
+            ss << value;
+            return "#" + ss.str();
         case SymbolType::Variable:
-            return std::to_string(offset);
+            ss << offset;
+            return ss.str();
+    }
+    return "";
+}
+
+std::string SymbolEntry::instr_type_postfix() const
+{
+    switch (var_type)
+    {
+        case VariableType::Integer:
+            return ".i";
+        case VariableType::Real:
+            return ".r";
     }
     return "";
 }
@@ -42,13 +58,22 @@ int SymbolTable::type_size(VariableType var_type) const
     {
         case VariableType::Integer:
             return 4;
+        case VariableType::Real:
+            return 8;
     }
     throw std::runtime_error("Cannot determine type size");
 }
 
-int SymbolTable::add_constant(VariableType var_type, int value)
+int SymbolTable::add_constant(int value)
 {
-    const SymbolEntry new_entry{"-", var_type, SymbolType::Constant, value, -1};
+    const SymbolEntry new_entry{"-", VariableType::Integer, SymbolType::Constant, static_cast<double>(value), -1};
+    symbols.push_back(new_entry);
+    return symbols.size() - 1;
+}
+
+int SymbolTable::add_constant(double value)
+{
+    const SymbolEntry new_entry{"-", VariableType::Real, SymbolType::Constant, value, -1};
     symbols.push_back(new_entry);
     return symbols.size() - 1;
 }

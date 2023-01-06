@@ -16,20 +16,24 @@ int Driver::parse()
     return parse();
 }
 
-void Driver::set_debug_output(bool trace_scanning, bool trace_parsing)
+void Driver::set_debug(bool trace_scanning, bool trace_parsing)
 {
     this->trace_parsing = trace_parsing;
     this->trace_scanning = trace_scanning;
 }
 
-void Driver::set_location_filename(std::string& filename) { location.initialize(&filename); }
+void Driver::set_location_filename(const std::string& filename)
+{
+    loc_filename = filename;
+    location.initialize(&loc_filename);
+}
 
 void Driver::gencode(const std::string& code) { output_stream << code << std::endl; }
 
 void Driver::gencode(const std::string& code, int op1)
 {
     const auto& symbol1 = symbol_table.symbols[op1];
-    output_stream << code << ' ' << symbol1.as_operand() << std::endl;
+    output_stream << code << symbol1.instr_type_postfix() << ' ' << symbol1.as_operand() << std::endl;
 }
 
 void Driver::gencode(const std::string& code, int op1, int op2)

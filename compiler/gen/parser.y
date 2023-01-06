@@ -34,6 +34,7 @@
     EOF  0  "END OF FILE"
     PROGRAM "program"
     INT     "integer"
+    REAL    "real"
     DIV     "div"
     MOD     "mod"
     SEMICOL ";"
@@ -57,8 +58,10 @@
 ;
 
 %token <std::string> ID
+%token <int> INT_NUMBER
+%token <double> REAL_NUMBER
+
 %nterm <std::vector<std::string>> identifier_list
-%token <int> NUMBER
 %nterm <VariableType> type
 %nterm <int> variable
 %nterm <int> expression
@@ -89,6 +92,7 @@ declarations:
 
 type:
     INT { $$ = VariableType::Integer; }
+    | REAL { $$ = VariableType::Real; }
     ;
 
 // subprogram_declarations:
@@ -113,17 +117,31 @@ statement_list:
     ;
 
 statement:
-    variable ASSIGN expression  { drv.gencode("mov.i", $3, $1); }
+    variable ASSIGN expression  {
+        const auto& var = drv.symbol_table.symbols[$1];
+        const auto& expr = drv.symbol_table.symbols[$3];
+        auto conversion_var = $3;
+
+        if(var.var_type != expr.var_type) {
+            conversion_var = drv.symbol_table.add_tmp(var.var_type);
+            if(expr.var_type == VariableType::Integer) {
+                drv.gencode("inttoreal.i", $3, conversion_var);
+            } else {
+                drv.gencode("realtoint.r", $3, conversion_var);
+            }
+        }
+        drv.gencode("mov" + var.instr_type_postfix(), conversion_var, $1);
+    }
     | READ LPAREN identifier_list RPAREN {
         for(const auto &id: $3)
         {
-            drv.gencode("read.i", drv.symbol_table.find_symbol(id));
+            drv.gencode("read", drv.symbol_table.find_symbol(id));
         }
     }
     | WRITE LPAREN expression_list RPAREN {
         for(const auto &id: $3)
         {
-            drv.gencode("write.i", id);
+            drv.gencode("write", id);
         }
     }
     // | procedure_statement
@@ -150,7 +168,7 @@ expression:
 simple_expression:
     term
     | MINUS term {
-        const int zero_const = drv.symbol_table.add_constant(VariableType::Integer, 0);
+        const int zero_const = drv.symbol_table.add_constant(0);
         const int result_var = drv.symbol_table.add_tmp(VariableType::Integer);
         drv.gencode("sub.i", zero_const, $2, result_var);
         $$ = result_var;
@@ -205,7 +223,8 @@ term:
 factor:
     variable
     // | ID LPAREN expression_list RPAREN
-    | NUMBER { $$ = drv.symbol_table.add_constant(VariableType::Integer, $1); }
+    | INT_NUMBER { $$ = drv.symbol_table.add_constant($1); }
+    | REAL_NUMBER { $$ = drv.symbol_table.add_constant($1); }
     | LPAREN expression RPAREN { $$ = $2; }
     // | NOT factor
     ;
