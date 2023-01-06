@@ -1,5 +1,4 @@
 cmake_minimum_required(VERSION 3.20)
-project(binary_analysis C CXX)
 
 include(CTest)
 enable_testing()
