@@ -46,8 +46,7 @@ void SymbolTable::create_variables(const std::vector<std::string> &variable_ids,
 {
     for (const auto &id : variable_ids)
     {
-        const SymbolEntry new_entry{id, var_type, SymbolType::Variable, -1, global_offset};
-        symbols.push_back(new_entry);
+        symbols.push_back(SymbolEntry{id, var_type, SymbolType::Variable, -1, global_offset});
         global_offset += type_size(var_type);
     }
 }
@@ -66,22 +65,19 @@ int SymbolTable::type_size(VariableType var_type) const
 
 int SymbolTable::add_constant(int value, VariableType var_type)
 {
-    const SymbolEntry new_entry{"-", var_type, SymbolType::Constant, static_cast<double>(value), -1};
-    symbols.push_back(new_entry);
+    symbols.push_back(SymbolEntry{"-", var_type, SymbolType::Constant, static_cast<double>(value), -1});
     return symbols.size() - 1;
 }
 
 int SymbolTable::add_constant(double value, VariableType var_type)
 {
-    const SymbolEntry new_entry{"-", var_type, SymbolType::Constant, value, -1};
-    symbols.push_back(new_entry);
+    symbols.push_back(SymbolEntry{"-", var_type, SymbolType::Constant, value, -1});
     return symbols.size() - 1;
 }
 
 int SymbolTable::add_tmp(VariableType var_type)
 {
-    const SymbolEntry new_entry{"$t" + std::to_string(tmp_var_count), var_type, SymbolType::Variable, -1, global_offset};
-    symbols.push_back(new_entry);
+    symbols.push_back(SymbolEntry{"$t" + std::to_string(tmp_var_count), var_type, SymbolType::Variable, -1, global_offset});
 
     global_offset += type_size(var_type);
     tmp_var_count += 1;

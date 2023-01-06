@@ -118,15 +118,15 @@ statement_list:
 
 statement:
     variable ASSIGN expression  {
-        const auto& var = drv.symbol_table.symbols[$1];
-        const auto& expr = drv.symbol_table.symbols[$3];
-        auto dest_var = $3;
+        const auto var_type = drv.symbol_table.symbols[$1].var_type;
+        const auto expr_type = drv.symbol_table.symbols[$3].var_type;
+        int dest_var = $3;
 
-        if(var.var_type != expr.var_type) {
-            dest_var = drv.symbol_table.add_tmp(var.var_type);
-            if(expr.var_type == VariableType::Integer && var.var_type == VariableType::Real) {
+        if(var_type != expr_type) {
+            dest_var = drv.symbol_table.add_tmp(var_type);
+            if(expr_type == VariableType::Integer && var_type == VariableType::Real) {
                 drv.gencode("inttoreal", $3, dest_var);
-            } else if (expr.var_type == VariableType::Real && var.var_type == VariableType::Integer) {
+            } else if (expr_type == VariableType::Real && var_type == VariableType::Integer) {
                 drv.gencode("realtoint", $3, dest_var);
             }
         }
@@ -177,9 +177,9 @@ expression:
 simple_expression:
     term
     | MINUS term {
-        const auto& term = drv.symbol_table.symbols[$2];
-        const int zero_const = drv.symbol_table.add_constant(0, term.var_type);
-        const int result_var = drv.symbol_table.add_tmp(term.var_type);
+        const auto term_type = drv.symbol_table.symbols[$2].var_type;
+        const int zero_const = drv.symbol_table.add_constant(0, term_type);
+        const int result_var = drv.symbol_table.add_tmp(term_type);
         drv.gencode("sub", zero_const, $2, result_var);
         $$ = result_var;
     }

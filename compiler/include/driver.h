@@ -36,5 +36,5 @@ public:
     void gencode(const std::string& code, int op1, int op2, int op3);
 
     int gencode_conversions(const std::string& code, int op1, int op2);
-    bool assert_int_operands(const std::string& expr, int op1, int op2) const;
+    void assert_int_operands(const std::string& expr, int op1, int op2) const;
 };
