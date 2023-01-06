@@ -124,13 +124,13 @@ statement:
 
         if(var.var_type != expr.var_type) {
             dest_var = drv.symbol_table.add_tmp(var.var_type);
-            if(expr.var_type == VariableType::Integer) {
-                drv.gencode("inttoreal.i", $3, dest_var);
-            } else {
-                drv.gencode("realtoint.r", $3, dest_var);
+            if(expr.var_type == VariableType::Integer && var.var_type == VariableType::Real) {
+                drv.gencode("inttoreal", $3, dest_var);
+            } else if (expr.var_type == VariableType::Real && var.var_type == VariableType::Integer) {
+                drv.gencode("realtoint", $3, dest_var);
             }
         }
-        drv.gencode("mov" + var.instr_type_postfix(), dest_var, $1);
+        drv.gencode("mov", dest_var, $1);
     }
     | READ LPAREN identifier_list RPAREN {
         for(const auto &id: $3)
@@ -151,13 +151,22 @@ statement:
     ;
 
 variable:
-    ID { $$ = drv.symbol_table.find_symbol($1); if($$ < 0) throw std::runtime_error("Variable " + $1 + " has not been declarated"); }
+    ID {
+        $$ = drv.symbol_table.find_symbol($1);
+        if($$ < 0)
+            throw std::runtime_error("Variable " + $1 + " has not been declarated");
+    }
     // | ID '[' expression ']'
     ;
 
 expression_list:
-    expression { $$.push_back($1); }
-    | expression_list COMMA expression { $$ = $1; $$.push_back($3); }
+    expression {
+        $$.push_back($1);
+    }
+    | expression_list COMMA expression {
+        $$ = $1;
+        $$.push_back($3);
+    }
     ;
 
 expression:
@@ -168,64 +177,57 @@ expression:
 simple_expression:
     term
     | MINUS term {
-        const int zero_const = drv.symbol_table.add_constant(0);
-        const int result_var = drv.symbol_table.add_tmp(VariableType::Integer);
-        drv.gencode("sub.i", zero_const, $2, result_var);
+        const auto& term = drv.symbol_table.symbols[$2];
+        const int zero_const = drv.symbol_table.add_constant(0, term.var_type);
+        const int result_var = drv.symbol_table.add_tmp(term.var_type);
+        drv.gencode("sub", zero_const, $2, result_var);
         $$ = result_var;
-        }
-    | PLUS term { $$ = $2; }
+    }
+    | PLUS term {
+        $$ = $2;
+    }
     | simple_expression MINUS term {
-        const int result_var = drv.symbol_table.add_tmp(VariableType::Integer);
-        drv.gencode("sub.i", $1, $3, result_var);
-        $$ = result_var;
-        }
+        $$ = drv.gencode_conversions("sub", $1, $3);
+    }
     | simple_expression PLUS term {
-        const int result_var = drv.symbol_table.add_tmp(VariableType::Integer);
-        drv.gencode("add.i", $1, $3, result_var);
-        $$ = result_var;
-        }
+        $$ = drv.gencode_conversions("add", $1, $3);
+    }
     | simple_expression OR term {
-        const int result_var = drv.symbol_table.add_tmp(VariableType::Integer);
-        drv.gencode("or.i", $1, $3, result_var);
-        $$ = result_var;
-        }
+        $$ = drv.gencode_conversions("or", $1, $3);
+    }
     ;
 
 term:
     factor
     | term STAR factor {
-        const int result_var = drv.symbol_table.add_tmp(VariableType::Integer);
-        drv.gencode("mul.i", $1, $3, result_var);
-        $$ = result_var;
-        }
+        $$ = drv.gencode_conversions("mul", $1, $3);
+    }
     | term SLASH factor {
-        const int result_var = drv.symbol_table.add_tmp(VariableType::Integer);
-        drv.gencode("div.i", $1, $3, result_var);
-        $$ = result_var;
-        }
+        $$ = drv.gencode_conversions("div", $1, $3);
+    }
     | term DIV factor {
-        const int result_var = drv.symbol_table.add_tmp(VariableType::Integer);
-        drv.gencode("div.i", $1, $3, result_var);
-        $$ = result_var;
-        }
+        $$ = drv.gencode_conversions("div", $1, $3);
+    }
     | term MOD factor {
-        const int result_var = drv.symbol_table.add_tmp(VariableType::Integer);
-        drv.gencode("mod.i", $1, $3, result_var);
-        $$ = result_var;
-        }
+        $$ = drv.gencode_conversions("mod", $1, $3);
+    }
     | term AND factor {
-        const int result_var = drv.symbol_table.add_tmp(VariableType::Integer);
-        drv.gencode("and.i", $1, $3, result_var);
-        $$ = result_var;
-        }
+        $$ = drv.gencode_conversions("and", $1, $3);
+    }
     ;
 
 factor:
     variable
     // | ID LPAREN expression_list RPAREN
-    | INT_NUMBER { $$ = drv.symbol_table.add_constant($1); }
-    | REAL_NUMBER { $$ = drv.symbol_table.add_constant($1); }
-    | LPAREN expression RPAREN { $$ = $2; }
+    | INT_NUMBER {
+        $$ = drv.symbol_table.add_constant($1);
+    }
+    | REAL_NUMBER {
+        $$ = drv.symbol_table.add_constant($1);
+    }
+    | LPAREN expression RPAREN {
+        $$ = $2;
+    }
     // | NOT factor
     ;
 %%

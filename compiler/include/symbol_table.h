@@ -38,8 +38,8 @@ public:
 
     void create_variables(const std::vector<std::string> &variable_ids, VariableType var_type);
 
-    int add_constant(int value);
-    int add_constant(double value);
+    int add_constant(int value, VariableType var_type = VariableType::Integer);
+    int add_constant(double value, VariableType var_type = VariableType::Real);
 
     int add_tmp(VariableType var_type);
 

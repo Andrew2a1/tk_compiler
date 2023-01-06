@@ -40,7 +40,7 @@ void Driver::gencode(const std::string& code, int op1, int op2)
 {
     const auto& symbol1 = symbol_table.symbols[op1];
     const auto& symbol2 = symbol_table.symbols[op2];
-    output_stream << code << ' ' << symbol1.as_operand() << ',' << symbol2.as_operand() << std::endl;
+    output_stream << code << symbol1.instr_type_postfix() << ' ' << symbol1.as_operand() << ',' << symbol2.as_operand() << std::endl;
 }
 
 void Driver::gencode(const std::string& code, int op1, int op2, int op3)
@@ -48,5 +48,48 @@ void Driver::gencode(const std::string& code, int op1, int op2, int op3)
     const auto& symbol1 = symbol_table.symbols[op1];
     const auto& symbol2 = symbol_table.symbols[op2];
     const auto& symbol3 = symbol_table.symbols[op3];
-    output_stream << code << ' ' << symbol1.as_operand() << ',' << symbol2.as_operand() << ',' << symbol3.as_operand() << std::endl;
+
+    assert(symbol1.var_type == symbol2.var_type);
+    assert(symbol2.var_type == symbol3.var_type);
+
+    output_stream << code << symbol1.instr_type_postfix() << ' ' << symbol1.as_operand() << ',' << symbol2.as_operand() << ',' << symbol3.as_operand()
+                  << std::endl;
+}
+
+int Driver::gencode_conversions(const std::string& code, int op1, int op2)
+{
+    const auto& expr = symbol_table.symbols[op1];
+    const auto& term = symbol_table.symbols[op2];
+
+    if (expr.var_type != term.var_type)
+    {
+        const int conversion_var = symbol_table.add_tmp(VariableType::Real);
+        const int result_var = symbol_table.add_tmp(VariableType::Real);
+
+        if (expr.var_type == VariableType::Integer && term.var_type == VariableType::Real)
+        {
+            gencode("inttoreal", op1, conversion_var);
+            gencode(code, conversion_var, op2, result_var);
+        }
+        else if (expr.var_type == VariableType::Real && term.var_type == VariableType::Integer)
+        {
+            gencode("inttoreal", op2, conversion_var);
+            gencode(code, op1, conversion_var, result_var);
+        }
+        return result_var;
+    }
+    const int result_var = symbol_table.add_tmp(expr.var_type);
+    gencode(code, op1, op2, result_var);
+    return result_var;
+}
+
+bool Driver::assert_int_operands(const std::string& expr, int op1, int op2) const
+{
+    const auto& s1 = symbol_table.symbols[op1];
+    const auto& s2 = symbol_table.symbols[op2];
+
+    if (s1.var_type != VariableType::Integer || s2.var_type != VariableType::Integer)
+    {
+        throw std::runtime_error("Invalid operand type for '" + expr + "' expression.");
+    }
 }

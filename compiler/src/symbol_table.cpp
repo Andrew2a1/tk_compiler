@@ -64,16 +64,16 @@ int SymbolTable::type_size(VariableType var_type) const
     throw std::runtime_error("Cannot determine type size");
 }
 
-int SymbolTable::add_constant(int value)
+int SymbolTable::add_constant(int value, VariableType var_type)
 {
-    const SymbolEntry new_entry{"-", VariableType::Integer, SymbolType::Constant, static_cast<double>(value), -1};
+    const SymbolEntry new_entry{"-", var_type, SymbolType::Constant, static_cast<double>(value), -1};
     symbols.push_back(new_entry);
     return symbols.size() - 1;
 }
 
-int SymbolTable::add_constant(double value)
+int SymbolTable::add_constant(double value, VariableType var_type)
 {
-    const SymbolEntry new_entry{"-", VariableType::Real, SymbolType::Constant, value, -1};
+    const SymbolEntry new_entry{"-", var_type, SymbolType::Constant, value, -1};
     symbols.push_back(new_entry);
     return symbols.size() - 1;
 }
