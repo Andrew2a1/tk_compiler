@@ -1,5 +1,0 @@
-program example(input, output);
-var x: integer;
-var g,h,j:integer;
-begin
-end.

@@ -7,6 +7,7 @@ set(SOURCES
 
 set(HEADERS
     include/driver.h
+    include/scanner.h
     include/symbol_table.h
 )
 

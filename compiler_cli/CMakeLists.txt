@@ -2,9 +2,11 @@ project(compiler_cli C CXX)
 
 set(SOURCES
     src/main.cpp
+    src/cli_utils.cpp
 )
 
 set(HEADERS
+    include/cli_utils.h
 )
 
 find_package(CLI11 CONFIG REQUIRED)

@@ -1,7 +1,7 @@
 %skeleton "lalr1.cc" /* -*- C++ -*- */
 %require "3.5"
-%defines
 
+%defines
 %define api.token.constructor
 %define api.value.type variant
 %define parse.assert
@@ -10,16 +10,23 @@
 %define parse.trace
 %define parse.error verbose
 
+%param { Scanner& scanner }
 %param { Driver& drv }
 
 %code requires {
     #include "symbol_table.h"
     #include <stdexcept>
+
+    class Scanner;
     class Driver;
 }
 
 %code {
     #include "driver.h"
+
+    static yy::parser::symbol_type yylex(Scanner &scanner, Driver &) {
+        return scanner.get_next_token();
+    }
 }
 
 %define api.token.prefix {TOK_}

@@ -1,7 +1,6 @@
 #include <driver.h>
 
-#include <filesystem>
-#include <fstream>
+#include <iostream>
 #include <sstream>
 
 #include "gtest/gtest.h"
@@ -12,61 +11,72 @@ class ParserGenerateOutputTest : public ::testing::Test
 
 TEST_F(ParserGenerateOutputTest, GeneratesExitForEmptyProgram)
 {
-    Driver driver;
+    std::istringstream input(
+        "program example(input);\n"
+        "begin\n"
+        "end.\n");
 
-    const auto input_filepath = std::filesystem::path{TEST_DATA_DIRECOTRY} / "simplest.txt";
-    const auto output_path = std::filesystem::temp_directory_path() / "output.s";
+    std::ostringstream output;
+    Driver driver(output, input);
 
-    const int result = driver.parse(input_filepath, output_path);
-    ASSERT_EQ(result, 0);
-
-    std::ifstream generated_code(output_path, std::ios::in);
-    std::string output_data;
-
-    std::getline(generated_code, output_data);
-    ASSERT_EQ(output_data, "exit");
+    ASSERT_EQ(driver.parse(), 0);
+    ASSERT_EQ(output.str(), "exit\n");
 }
 
 TEST_F(ParserGenerateOutputTest, DoesNotGenerateInstructionsOnlyForVarDeclaration)
 {
-    Driver driver;
+    std::istringstream input(
+        "program example(input, output);\n"
+        "var x: integer;\n"
+        "var g,h,j:integer;\n"
+        "begin\n"
+        "end.");
 
-    const auto input_filepath = std::filesystem::path{TEST_DATA_DIRECOTRY} / "four_var.txt";
-    const auto output_path = std::filesystem::temp_directory_path() / "output.s";
+    std::ostringstream output;
+    Driver driver(output, input);
 
-    const int result = driver.parse(input_filepath, output_path);
-    ASSERT_EQ(result, 0);
-
-    std::ifstream generated_code(output_path, std::ios::in);
-    std::string output_data;
-
-    std::getline(generated_code, output_data);
-    ASSERT_EQ(output_data, "exit");
+    ASSERT_EQ(driver.parse(), 0);
+    ASSERT_EQ(output.str(), "exit\n");
 }
 
 TEST_F(ParserGenerateOutputTest, GeneratesMovOnVariableAssignment)
 {
-    Driver driver;
+    std::istringstream input(
+        "program example(input, output);\n"
+        "var a: integer;\n"
+        "var g,h,j:integer;\n"
+        "begin\n"
+        "a := 3\n"
+        "end.");
 
-    const auto input_filepath = std::filesystem::path{TEST_DATA_DIRECOTRY} / "one_var_const.txt";
-    const auto output_path = std::filesystem::temp_directory_path() / "output.s";
+    const std::string expected_data =
+        "mov.i #3,0\n"
+        "exit\n";
 
-    const int result = driver.parse(input_filepath, output_path);
-    ASSERT_EQ(result, 0);
+    std::ostringstream output;
+    Driver driver(output, input);
 
-    std::ifstream generated_code(output_path, std::ios::in);
-    std::string output_data;
-
-    std::getline(generated_code, output_data);
-    ASSERT_EQ(output_data, "mov.i #3,0");
-
-    std::getline(generated_code, output_data);
-    ASSERT_EQ(output_data, "exit");
+    ASSERT_EQ(driver.parse(), 0);
+    ASSERT_EQ(output.str(), expected_data);
 }
 
 TEST_F(ParserGenerateOutputTest, GeneratesValidOutputForManyOperations)
 {
-    const std::string expected =
+    std::istringstream input(
+        "program example(input, output);\n"
+        "var x, y: integer;\n"
+        "var g,h:integer;\n"
+        "\n"
+        "begin\n"
+        "read(x,y);\n"
+        "h:=1;\n"
+        "g:=x+y*h mod 2;\n"
+        "h:=g and 5 or 2 div 1;\n"
+        "write(g, h);\n"
+        "write(x)\n"
+        "end.\n");
+
+    std::string expected_data =
         "read.i 0\n"
         "read.i 4\n"
         "mov.i #1,12\n"
@@ -83,17 +93,9 @@ TEST_F(ParserGenerateOutputTest, GeneratesValidOutputForManyOperations)
         "write.i 0\n"
         "exit\n";
 
-    Driver driver;
+    std::ostringstream output;
+    Driver driver(output, input);
 
-    const auto input_filepath = std::filesystem::path{TEST_DATA_DIRECOTRY} / "all_simple.txt";
-    const auto output_path = std::filesystem::temp_directory_path() / "output.s";
-    const int result = driver.parse(input_filepath, output_path);
-
-    ASSERT_EQ(result, 0);
-
-    std::ifstream generated_code(output_path, std::ios::in);
-    std::stringstream buffer;
-    buffer << generated_code.rdbuf();
-
-    ASSERT_EQ(buffer.str(), expected);
+    ASSERT_EQ(driver.parse(), 0);
+    ASSERT_EQ(output.str(), expected_data);
 }

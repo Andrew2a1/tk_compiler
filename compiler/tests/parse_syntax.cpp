@@ -1,6 +1,7 @@
 #include <driver.h>
 
-#include <filesystem>
+#include <iostream>
+#include <sstream>
 
 #include "gtest/gtest.h"
 
@@ -10,45 +11,66 @@ class ParserSyntaxTest : public ::testing::Test
 
 TEST_F(ParserSyntaxTest, ParsesEmptyButValidProgram)
 {
-    const auto input_filepath = std::filesystem::path{TEST_DATA_DIRECOTRY} / "simplest.txt";
-    Driver driver;
+    std::istringstream input(
+        "program example(input);\n"
+        "begin\n"
+        "end.");
 
-    const int result = driver.parse(input_filepath);
-    ASSERT_EQ(result, 0);
+    Driver driver(std::cout, input);
+    ASSERT_EQ(driver.parse(), 0);
 }
 
 TEST_F(ParserSyntaxTest, NoInputGeneratesError)
 {
-    const auto input_filepath = std::filesystem::path{TEST_DATA_DIRECOTRY} / "empty.txt";
-    Driver driver;
-
-    const int result = driver.parse(input_filepath);
-    ASSERT_NE(result, 0);
+    std::istringstream input("");
+    Driver driver(std::cout, input);
+    ASSERT_NE(driver.parse(), 0);
 }
 
 TEST_F(ParserSyntaxTest, ParsesCodeOneVariable)
 {
-    const auto input_filepath = std::filesystem::path{TEST_DATA_DIRECOTRY} / "one_var.txt";
-    Driver driver;
+    std::istringstream input(
+        "program example(input, output);\n"
+        "var a: integer;\n"
+        "begin\n"
+        "end.");
 
-    const int result = driver.parse(input_filepath);
-    ASSERT_EQ(result, 0);
+    Driver driver(std::cout, input);
+    ASSERT_EQ(driver.parse(), 0);
 }
 
 TEST_F(ParserSyntaxTest, ParsesCodeFromWeb)
 {
-    const auto input_filepath = std::filesystem::path{TEST_DATA_DIRECOTRY} / "simple_from_web.txt";
-    Driver driver;
+    std::istringstream input(
+        "program example(input, output);\n"
+        "var x, y: integer;\n"
+        "var g,h:integer;\n"
+        "\n"
+        "begin\n"
+        "read(x,y);\n"
+        "h:=1;\n"
+        "g:=x+y*h;\n"
+        "write(g)\n"
+        "end.\n");
 
-    const int result = driver.parse(input_filepath);
-    ASSERT_EQ(result, 0);
+    Driver driver(std::cout, input);
+    ASSERT_EQ(driver.parse(), 0);
 }
 
 TEST_F(ParserSyntaxTest, FailsOnCodeFromWebWithMissingSemicolon)
 {
-    const auto input_filepath = std::filesystem::path{TEST_DATA_DIRECOTRY} / "simple_from_web_with_error.txt";
-    Driver driver;
+    std::istringstream input(
+        "program example(input, output);\n"
+        "var x, y: integer;\n"
+        "var g,h:integer;\n"
+        "\n"
+        "begin\n"
+        "read(x,y)\n"
+        "h:=1;\n"
+        "g:=x+y*h;\n"
+        "write(g)\n"
+        "end.\n");
 
-    const int result = driver.parse(input_filepath);
-    ASSERT_NE(result, 0);
+    Driver driver(std::cout, input);
+    ASSERT_NE(driver.parse(), 0);
 }

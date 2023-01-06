@@ -1,14 +1,11 @@
-%{ /* -*- C++ -*- */
-#include <cerrno>
-#include <climits>
-#include <cstdlib>
-#include <cstring>
+%{
 #include <string>
 #include "driver.h"
 #include "parser.h"
 %}
 
-%option noyywrap nounput noinput batch debug
+%option c++ noyywrap nounput noinput batch debug
+%option yyclass="Scanner"
 
 id  [a-zA-Z_][a-zA-Z0-9_]*
 int   [0-9]+
@@ -54,25 +51,3 @@ and       return yy::parser::make_AND(loc);
 {id}      return yy::parser::make_ID(yytext, loc);
 <<EOF>>   return yy::parser::make_EOF(loc);
 %%
-
-void Driver::scan_begin()
-{
-    yy_flex_debug = trace_scanning;
-    if (filename.empty() || filename == "-")
-        yyin = stdin;
-    else if (!(yyin = fopen(filename.c_str(), "r")))
-    {
-        std::cerr << "Cannot open " << filename << ": " << std::strerror(errno) << '\n';
-        exit(EXIT_FAILURE);
-    }
-}
-
-void Driver::scan_end()
-{
-    fclose(yyin);
-}
-
-Driver::~Driver()
-{
-    yylex_destroy();
-}

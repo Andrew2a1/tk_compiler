@@ -1,11 +1,10 @@
+#include <cli_utils.h>
 #include <driver.h>
 
 #include <CLI/CLI.hpp>
 #include <clocale>
 #include <filesystem>
-#include <tabulate/table.hpp>
-
-void print_symbol_table(const SymbolTable &table);
+#include <fstream>
 
 int main(int argc, char *argv[])
 {
@@ -28,8 +27,13 @@ int main(int argc, char *argv[])
         return app.exit(e);
     }
 
-    Driver driver(trace_scanning, trace_parsing);
-    int result = driver.parse(input_filename, output_filename);
+    std::ifstream input(input_filename);
+    std::ofstream output(output_filename);
+
+    Driver driver(use_console(output_filename) ? std::cout : output, use_console(input_filename) ? std::cin : input);
+
+    driver.set_debug_output(trace_scanning, trace_parsing);
+    const int result = driver.parse();
 
     if (result != 0)
     {
@@ -42,41 +46,4 @@ int main(int argc, char *argv[])
 
     std::locale::global(std::locale("C"));
     return result;
-}
-
-std::string var_type_to_str(VariableType var_type)
-{
-    switch (var_type)
-    {
-        case VariableType::Integer:
-            return "integer";
-    }
-    return "UNKNOWN";
-}
-
-std::string symbol_type_to_str(SymbolType symbol_type)
-{
-    switch (symbol_type)
-    {
-        case SymbolType::Constant:
-            return "const";
-        case SymbolType::Variable:
-            return "var";
-    }
-    return "UNKNOWN";
-}
-
-void print_symbol_table(const SymbolTable &table)
-{
-    tabulate::Table symtable;
-    symtable.add_row({"ID", "Type", "Var Type", "Value", "Offset"});
-
-    for (const auto &symbol : table.symbols)
-    {
-        const std::string value_str = (symbol.symbol_type == SymbolType::Constant) ? std::to_string(symbol.value) : "-";
-        const std::string offset_str = (symbol.symbol_type != SymbolType::Constant) ? std::to_string(symbol.offset) : "-";
-        symtable.add_row({symbol.id, symbol_type_to_str(symbol.symbol_type), var_type_to_str(symbol.var_type), value_str, offset_str});
-    }
-
-    std::cout << symtable << std::endl;
 }

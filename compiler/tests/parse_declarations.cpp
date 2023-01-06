@@ -1,6 +1,7 @@
 #include <driver.h>
 
-#include <filesystem>
+#include <iostream>
+#include <sstream>
 
 #include "gtest/gtest.h"
 
@@ -10,31 +11,41 @@ class ParserParseDeclarationsTest : public ::testing::Test
 
 TEST_F(ParserParseDeclarationsTest, EmptyProgramShouldLeaveEmptySymbolTable)
 {
-    const auto input_filepath = std::filesystem::path{TEST_DATA_DIRECOTRY} / "simplest.txt";
+    std::istringstream input(
+        "program example(input);\n"
+        "begin\n"
+        "end.\n");
 
-    Driver driver;
+    Driver driver(std::cout, input);
     ASSERT_EQ(driver.symbol_table.symbols.size(), 0);
 
-    driver.parse(input_filepath);
+    driver.parse();
     ASSERT_EQ(driver.symbol_table.symbols.size(), 0);
 }
 
 TEST_F(ParserParseDeclarationsTest, EmptyProgramWithOneVariableDeclaration)
 {
-    const auto input_filepath = std::filesystem::path{TEST_DATA_DIRECOTRY} / "one_var.txt";
+    std::istringstream input(
+        "program ex(input, output);\n"
+        "var a: integer;\n"
+        "begin\n"
+        "end.\n");
 
-    Driver driver;
-    driver.parse(input_filepath);
-
+    Driver driver(std::cout, input);
+    driver.parse();
     ASSERT_EQ(driver.symbol_table.symbols.size(), 1);
 }
 
 TEST_F(ParserParseDeclarationsTest, EmptyProgramWithFourVariableDeclaration)
 {
-    const auto input_filepath = std::filesystem::path{TEST_DATA_DIRECOTRY} / "four_var.txt";
+    std::istringstream input(
+        "program example(input, output);\n"
+        "var x: integer;\n"
+        "var g,h,j:integer;\n"
+        "begin\n"
+        "end.\n");
 
-    Driver driver;
-    driver.parse(input_filepath);
-
+    Driver driver(std::cout, input);
+    driver.parse();
     ASSERT_EQ(driver.symbol_table.symbols.size(), 4);
 }

@@ -1,4 +1,0 @@
-program example(input, output);
-var a: integer;
-begin
-end.
