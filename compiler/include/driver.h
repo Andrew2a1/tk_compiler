@@ -31,10 +31,9 @@ public:
     void set_location_filename(const std::string& filename);
 
     void gencode(const std::string& code);
-    void gencode(const std::string& code, int op1);
-    void gencode(const std::string& code, int op1, int op2);
-    void gencode(const std::string& code, int op1, int op2, int op3);
+    void gencode(const std::string& code, int op1, bool generate_instr_postfix = true);
+    void gencode(const std::string& code, int op1, int op2, bool generate_instr_postfix = true);
+    void gencode(const std::string& code, int op1, int op2, int op3, bool generate_instr_postfix = true);
 
     int gencode_conversions(const std::string& code, int op1, int op2);
-    void assert_int_operands(const std::string& expr, int op1, int op2) const;
 };

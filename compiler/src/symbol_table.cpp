@@ -5,36 +5,9 @@
 #include <sstream>
 #include <stdexcept>
 
-std::string SymbolEntry::as_operand() const
-{
-    std::stringstream ss;
-    switch (symbol_type)
-    {
-        case SymbolType::Constant:
-            ss << value;
-            return "#" + ss.str();
-        case SymbolType::Variable:
-            ss << offset;
-            return ss.str();
-    }
-    return "";
-}
-
-std::string SymbolEntry::instr_type_postfix() const
-{
-    switch (var_type)
-    {
-        case VariableType::Integer:
-            return ".i";
-        case VariableType::Real:
-            return ".r";
-    }
-    return "";
-}
-
 int SymbolTable::find_symbol(const std::string &id) const
 {
-    const auto iter = std::find_if(symbols.cbegin(), symbols.cend(), [&id](const SymbolEntry &entry) { return entry.id == id; });
+    const auto iter = std::find_if(symbols.cbegin(), symbols.cend(), [&id](const SymbolTableEntry &entry) { return entry.id == id; });
     if (iter == symbols.cend())
     {
         return -1;
@@ -46,7 +19,7 @@ void SymbolTable::create_variables(const std::vector<std::string> &variable_ids,
 {
     for (const auto &id : variable_ids)
     {
-        symbols.push_back(SymbolEntry{id, var_type, SymbolType::Variable, -1, global_offset});
+        symbols.push_back({id, var_type, SymbolType::Variable, -1, global_offset});
         global_offset += type_size(var_type);
     }
 }
@@ -65,19 +38,19 @@ int SymbolTable::type_size(VariableType var_type) const
 
 int SymbolTable::add_constant(int value, VariableType var_type)
 {
-    symbols.push_back(SymbolEntry{"-", var_type, SymbolType::Constant, static_cast<double>(value), -1});
+    symbols.push_back({"-", var_type, SymbolType::Constant, static_cast<double>(value), -1});
     return symbols.size() - 1;
 }
 
 int SymbolTable::add_constant(double value, VariableType var_type)
 {
-    symbols.push_back(SymbolEntry{"-", var_type, SymbolType::Constant, value, -1});
+    symbols.push_back({"-", var_type, SymbolType::Constant, value, -1});
     return symbols.size() - 1;
 }
 
 int SymbolTable::add_tmp(VariableType var_type)
 {
-    symbols.push_back(SymbolEntry{"$t" + std::to_string(tmp_var_count), var_type, SymbolType::Variable, -1, global_offset});
+    symbols.push_back({"$t" + std::to_string(tmp_var_count), var_type, SymbolType::Variable, -1, global_offset});
 
     global_offset += type_size(var_type);
     tmp_var_count += 1;

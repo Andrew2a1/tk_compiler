@@ -38,6 +38,7 @@ div       return yy::parser::make_DIV(loc);
 mod       return yy::parser::make_MOD(loc);
 or        return yy::parser::make_OR(loc);
 and       return yy::parser::make_AND(loc);
+not       return yy::parser::make_NOT(loc);
 :=        return yy::parser::make_ASSIGN(loc);
 \+        return yy::parser::make_PLUS(loc);
 \-        return yy::parser::make_MINUS(loc);

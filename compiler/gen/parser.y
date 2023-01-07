@@ -37,6 +37,7 @@
     REAL    "real"
     DIV     "div"
     MOD     "mod"
+    NOT     "not"
     SEMICOL ";"
     COLON   ":"
     LPAREN  "("
@@ -228,7 +229,11 @@ factor:
     | LPAREN expression RPAREN {
         $$ = $2;
     }
-    // | NOT factor
+    | NOT factor {
+        const int result_var = drv.symbol_table.add_tmp(VariableType::Integer);
+        drv.gencode("not.i", $2, result_var, false);
+        $$ = result_var;
+    }
     ;
 %%
 
