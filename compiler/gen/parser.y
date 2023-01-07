@@ -31,31 +31,33 @@
 
 %define api.token.prefix {TOK_}
 %token
-    EOF  0  "END OF FILE"
-    PROGRAM "program"
-    INT     "integer"
-    REAL    "real"
-    DIV     "div"
-    MOD     "mod"
-    NOT     "not"
-    SEMICOL ";"
-    COLON   ":"
-    LPAREN  "("
-    RPAREN  ")"
-    ASSIGN  ":="
-    PLUS    "+"
-    STAR    "*"
-    MINUS   "-"
-    SLASH   "/"
-    DOT     "."
-    COMMA   ","
-    VAR     "var"
-    OR      "or"
-    AND     "and"
-    BEGIN   "begin"
-    END     "end"
-    READ    "read"
-    WRITE   "write"
+    EOF  0    "END OF FILE"
+    PROGRAM   "program"
+    INT       "integer"
+    FUNCTION  "function"
+    PROCEDURE "procedure"
+    REAL      "real"
+    DIV       "div"
+    MOD       "mod"
+    NOT       "not"
+    SEMICOL   ";"
+    COLON     ":"
+    LPAREN    "("
+    RPAREN    ")"
+    ASSIGN    ":="
+    PLUS      "+"
+    STAR      "*"
+    MINUS     "-"
+    SLASH     "/"
+    DOT       "."
+    COMMA     ","
+    VAR       "var"
+    OR        "or"
+    AND       "and"
+    BEGIN     "begin"
+    END       "end"
+    READ      "read"
+    WRITE     "write"
 ;
 
 %token <std::string> ID
@@ -64,6 +66,7 @@
 
 %nterm <std::vector<std::string>> identifier_list
 %nterm <VariableType> type
+%nterm <VariableType> standard_type
 %nterm <int> variable
 %nterm <int> expression
 %nterm <std::vector<int>> expression_list
@@ -92,6 +95,10 @@ declarations:
     ;
 
 type:
+    standard_type { $$ = $1; }
+    ;
+
+standard_type:
     INT { $$ = VariableType::Integer; }
     | REAL { $$ = VariableType::Real; }
     ;
@@ -99,6 +106,25 @@ type:
 // subprogram_declarations:
 //     subprogram_declarations subprogram_declaration SEMICOL
 //     | %empty
+//     ;
+
+// subprogram_declaration:
+    // subprogram_head declarations compound_statement
+    // ;
+
+// subprogram_head:
+//     FUNCTION ID arguments COLON standard_type SEMICOL
+//     | PROCEDURE ID arguments SEMICOL
+//     ;
+
+// arguments:
+//     LPAREN parameter_list RPAREN
+//     | %empty
+//     ;
+
+// parameter_list:
+//     identifier_list COLON type
+//     | parameter_list SEMICOL identifier_list : type
 //     ;
 
 compound_statement:

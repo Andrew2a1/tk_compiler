@@ -27,6 +27,8 @@ blank   [ \t\r]
 {blank}+  loc.step();
 \n+       { loc.lines(yyleng); loc.step(); }
 program   return yy::parser::make_PROGRAM(loc);
+function  return yy::parser::make_FUNCTION(loc);
+procedure return yy::parser::make_PROCEDURE(loc);
 read      return yy::parser::make_READ(loc);
 write     return yy::parser::make_WRITE(loc);
 var       return yy::parser::make_VAR(loc);
