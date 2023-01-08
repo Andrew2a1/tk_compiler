@@ -18,8 +18,11 @@ public:
 private:
     std::ostream& output_stream;
     std::istream& input_stream;
-    std::string loc_filename;
 
+    Scanner scanner;
+    yy::parser parser;
+
+    std::string loc_filename;
     bool trace_scanning = false;
     bool trace_parsing = false;
 
@@ -29,6 +32,8 @@ public:
 
     void set_debug(bool trace_scanning = false, bool trace_parsing = false);
     void set_location_filename(const std::string& filename);
+
+    void error(const std::string& message);
 
     void gencode(const std::string& code);
     void gencode(const std::string& code, int op1, bool generate_instr_postfix = true);

@@ -3,17 +3,14 @@
 #include "parser.h"
 #include "scanner.h"
 
-Driver::Driver(std::ostream& output, std::istream& input) : output_stream(output), input_stream(input) {}
+Driver::Driver(std::ostream& output, std::istream& input) : output_stream(output), input_stream(input), scanner(*this), parser(scanner, *this) {}
 
 int Driver::parse()
 {
-    Scanner scanner(*this);
     scanner.switch_streams(&input_stream, &output_stream);
     scanner.set_debug(trace_scanning);
-
-    yy::parser parse(scanner, *this);
-    parse.set_debug_level(trace_parsing);
-    return parse();
+    parser.set_debug_level(trace_parsing);
+    return parser();
 }
 
 void Driver::set_debug(bool trace_scanning, bool trace_parsing)
@@ -26,6 +23,13 @@ void Driver::set_location_filename(const std::string& filename)
 {
     loc_filename = filename;
     location.initialize(&loc_filename);
+}
+
+void Driver::error(const std::string& message)
+{
+    const yy::parser::syntax_error syntax_error{location, message};
+    parser.error(syntax_error);
+    throw std::runtime_error(message);
 }
 
 void Driver::gencode(const std::string& code) { output_stream << code << std::endl; }

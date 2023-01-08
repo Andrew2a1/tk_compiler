@@ -208,8 +208,9 @@ statement:
 variable:
     ID {
         $$ = drv.symbol_table.find_symbol($1);
-        if($$ < 0)
-            throw std::runtime_error("Variable " + $1 + " has not been declarated");
+        if($$ < 0) {
+            drv.error("Variable '" + $1 + "' has not been declarated");
+        }
     }
     // | ID '[' expression ']'
     ;
