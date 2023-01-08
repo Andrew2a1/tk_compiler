@@ -4,6 +4,7 @@ set(SOURCES
     src/driver.cpp
     src/symbol_table.cpp
     src/symbol_table_entry.cpp
+    src/variable_type.cpp
 )
 
 set(HEADERS

@@ -37,4 +37,7 @@ public:
 
     int gencode_conversions(const std::string& code, int op1, int op2);
     int gencode_relop(const std::string& relop_code, int op1, int op2);
+
+private:
+    void geninstr(const std::string& code, VariableType common_var_type, bool generate_instr_postfix);
 };

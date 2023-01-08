@@ -34,11 +34,7 @@ void Driver::gencode(const std::string& code, int op1, bool generate_instr_postf
 {
     const auto& symbol1 = symbol_table.symbols[op1];
 
-    output_stream << code;
-    if (generate_instr_postfix)
-    {
-        output_stream << symbol1.instr_type_postfix();
-    }
+    geninstr(code, symbol1.var_type, generate_instr_postfix);
     output_stream << ' ' << symbol1.as_operand() << std::endl;
 }
 
@@ -47,11 +43,7 @@ void Driver::gencode(const std::string& code, int op1, int op2, bool generate_in
     const auto& symbol1 = symbol_table.symbols[op1];
     const auto& symbol2 = symbol_table.symbols[op2];
 
-    output_stream << code;
-    if (generate_instr_postfix)
-    {
-        output_stream << symbol1.instr_type_postfix();
-    }
+    geninstr(code, symbol1.var_type, generate_instr_postfix);
     output_stream << ' ' << symbol1.as_operand() << ',' << symbol2.as_operand() << std::endl;
 }
 
@@ -61,11 +53,7 @@ void Driver::gencode(const std::string& code, int op1, int op2, int op3, bool ge
     const auto& symbol2 = symbol_table.symbols[op2];
     const auto& symbol3 = symbol_table.symbols[op3];
 
-    output_stream << code;
-    if (generate_instr_postfix)
-    {
-        output_stream << symbol1.instr_type_postfix();
-    }
+    geninstr(code, symbol1.var_type, generate_instr_postfix);
     output_stream << ' ' << symbol1.as_operand() << ',' << symbol2.as_operand() << ',' << symbol3.as_operand() << std::endl;
 }
 
@@ -112,4 +100,13 @@ int Driver::gencode_relop(const std::string& relop_code, int op1, int op2)
     gencode(symbol_table.symbols[end_label].id + ":");
 
     return result_var;
+}
+
+void Driver::geninstr(const std::string& code, VariableType instr_var_type, bool generate_instr_postfix)
+{
+    output_stream << code;
+    if (generate_instr_postfix)
+    {
+        output_stream << instr_postfix(instr_var_type);
+    }
 }

@@ -18,15 +18,3 @@ std::string SymbolTableEntry::as_operand() const
     }
     return "";
 }
-
-std::string SymbolTableEntry::instr_type_postfix() const
-{
-    switch (var_type)
-    {
-        case VariableType::Integer:
-            return ".i";
-        case VariableType::Real:
-            return ".r";
-    }
-    return "";
-}

@@ -14,5 +14,4 @@ struct SymbolTableEntry
     int offset;
 
     std::string as_operand() const;
-    std::string instr_type_postfix() const;
 };
