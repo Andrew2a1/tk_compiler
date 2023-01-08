@@ -65,10 +65,11 @@ TEST_F(ParseBooleanOperations, NotOperatorIsAlwaysForTypeInt)
         "end.\n");
 
     const std::string expected =
-        "not.i 8,16\n"
-        "and.i #1,16,20\n"
-        "inttoreal.i 20,24\n"
-        "mov.r 24,0\n"
+        "realtoint.r 8,16\n"
+        "not.i 16,20\n"
+        "and.i #1,20,24\n"
+        "inttoreal.i 24,28\n"
+        "mov.r 28,0\n"
         "exit\n";
 
     std::ostringstream output;

@@ -22,6 +22,8 @@ std::string symbol_type_to_str(SymbolType symbol_type)
             return "const";
         case SymbolType::Variable:
             return "var";
+        case SymbolType::Label:
+            return "label";
     }
     return "UNKNOWN";
 }

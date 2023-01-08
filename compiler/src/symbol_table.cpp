@@ -57,3 +57,10 @@ int SymbolTable::add_tmp(VariableType var_type)
 
     return symbols.size() - 1;
 }
+
+int SymbolTable::add_label()
+{
+    symbols.push_back({"L" + std::to_string(label_count), VariableType::Integer, SymbolType::Label, -1, -1});
+    label_count += 1;
+    return symbols.size() - 1;
+}

@@ -61,9 +61,6 @@ void Driver::gencode(const std::string& code, int op1, int op2, int op3, bool ge
     const auto& symbol2 = symbol_table.symbols[op2];
     const auto& symbol3 = symbol_table.symbols[op3];
 
-    assert(symbol1.var_type == symbol2.var_type);
-    assert(symbol2.var_type == symbol3.var_type);
-
     output_stream << code;
     if (generate_instr_postfix)
     {
@@ -96,5 +93,23 @@ int Driver::gencode_conversions(const std::string& code, int op1, int op2)
     }
     const int result_var = symbol_table.add_tmp(s1_type);
     gencode(code, op1, op2, result_var);
+    return result_var;
+}
+
+int Driver::gencode_relop(const std::string& relop_code, int op1, int op2)
+{
+    const int true_label = symbol_table.add_label();
+    const int end_label = symbol_table.add_label();
+    const int result_var = symbol_table.add_tmp(VariableType::Integer);
+    const int zero_const = symbol_table.add_constant(0);
+    const int one_const = symbol_table.add_constant(1);
+
+    gencode(relop_code, op1, op2, true_label);
+    gencode("mov", zero_const, result_var);
+    gencode("jump", end_label);
+    gencode(symbol_table.symbols[true_label].id + ":");
+    gencode("mov", one_const, result_var);
+    gencode(symbol_table.symbols[end_label].id + ":");
+
     return result_var;
 }

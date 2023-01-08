@@ -22,6 +22,7 @@ set(TESTS
     tests/generate_output.cpp
     tests/real_numbers.cpp
     tests/boolean_operations.cpp
+    tests/relation_operations.cpp
 )
 
 set(FLEX_BISON_FILES

@@ -13,6 +13,8 @@ std::string SymbolTableEntry::as_operand() const
         case SymbolType::Variable:
             ss << offset;
             return ss.str();
+        case SymbolType::Label:
+            return "#" + id;
     }
     return "";
 }

@@ -40,6 +40,15 @@
     DIV       "div"
     MOD       "mod"
     NOT       "not"
+    IF        "if"
+    THEN      "then"
+    ELSE      "else"
+    EQ        "="
+    NE        "<>"
+    LE        "<="
+    GE        ">="
+    LO        "<"
+    GR        ">"
     SEMICOL   ";"
     COLON     ":"
     LPAREN    "("
@@ -171,11 +180,30 @@ statement:
             drv.gencode("write", id);
         }
     }
+    | IF expression THEN statement ELSE statement // if_stmt
     // | procedure_statement
     // | compound_statement
-    // | IF expression THEN statement ELSE statement
     // | WHILE expression DO statement
     ;
+
+// if_stmt:
+//     IF expression THEN if_matched_stmt optional_tail
+//     | statement
+//     ;
+
+// if_matched_stmt:
+//     IF expression THEN if_matched_stmt ELSE if_matched_stmt
+//     | statement
+//     ;
+
+// optional_tail:
+//     ELSE tail
+//     | %empty
+//     ;
+
+// tail:
+//     IF expression THEN tail
+//     | statement
 
 variable:
     ID {
@@ -198,7 +226,24 @@ expression_list:
 
 expression:
     simple_expression
-    // | simple_expression relop simple_expression
+    | simple_expression EQ simple_expression {
+        $$ = drv.gencode_relop("je", $1, $3);
+    }
+    | simple_expression NE simple_expression {
+        $$ = drv.gencode_relop("jne", $1, $3);
+    }
+    | simple_expression LE simple_expression {
+        $$ = drv.gencode_relop("jle", $1, $3);
+    }
+    | simple_expression GE simple_expression {
+        $$ = drv.gencode_relop("jge", $1, $3);
+    }
+    | simple_expression LO simple_expression {
+        $$ = drv.gencode_relop("jl", $1, $3);
+    }
+    | simple_expression GR simple_expression {
+        $$ = drv.gencode_relop("jg", $1, $3);
+    }
     ;
 
 simple_expression:
@@ -256,8 +301,17 @@ factor:
         $$ = $2;
     }
     | NOT factor {
+        const auto factor_type = drv.symbol_table.symbols[$2].var_type;
+        int factor = $2;
+
+        if(factor_type == VariableType::Real) {
+            const int conversion_var = drv.symbol_table.add_tmp(VariableType::Integer);
+            drv.gencode("realtoint", $2, conversion_var);
+            factor = conversion_var;
+        }
+
         const int result_var = drv.symbol_table.add_tmp(VariableType::Integer);
-        drv.gencode("not.i", $2, result_var, false);
+        drv.gencode("not.i", factor, result_var, false);
         $$ = result_var;
     }
     ;
