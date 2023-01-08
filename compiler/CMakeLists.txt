@@ -24,6 +24,7 @@ set(TESTS
     tests/real_numbers.cpp
     tests/boolean_operations.cpp
     tests/relation_operations.cpp
+    tests/conditional_expressions.cpp
 )
 
 set(FLEX_BISON_FILES

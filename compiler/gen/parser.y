@@ -36,6 +36,7 @@
     INT       "integer"
     FUNCTION  "function"
     PROCEDURE "procedure"
+    WHILE     "while"
     REAL      "real"
     DIV       "div"
     MOD       "mod"
@@ -78,6 +79,7 @@
 %nterm <VariableType> standard_type
 %nterm <int> variable
 %nterm <int> expression
+%nterm <int> statement
 %nterm <std::vector<int>> expression_list
 %nterm <int> simple_expression
 %nterm <int> term
@@ -181,46 +183,26 @@ statement:
         }
     }
     | IF expression {
-        const int label = drv.symbol_table.add_label();
+        const int else_label = drv.symbol_table.add_label();
         const int zero_const = drv.symbol_table.add_constant(0);
-        drv.gencode("je", $2, zero_const, label);
-        myGenCode(EQ, label1, true, $2, true, num, true);
-        $2 = label;
+        drv.gencode("je", $2, zero_const, else_label);
+        $2 = else_label;
     }
     THEN statement {
-        int label2 = insertLabel();
-				myGenCode(JUMP, label2, true, -1, true, -1, true);
-				myGenCode(LABEL, $2, true, -1, true, -1, true);
-				$5 = label2;
-                }
+        const int endif_label = drv.symbol_table.add_label();
+        const int else_label = $2;
+        drv.gencode("jump", endif_label);
+        drv.genlabel(else_label);
+        $5 = endif_label;
+    }
     ELSE statement {
-				myGenCode(LABEL, $5, true, -1, true, -1, true);
-			}
-
-     // if_stmt
+        const int endif_label = $5;
+        drv.genlabel(endif_label);
+    }
     // | procedure_statement
     // | compound_statement
     // | WHILE expression DO statement
     ;
-
-// if_stmt:
-//     IF expression THEN if_matched_stmt optional_tail
-//     | statement
-//     ;
-
-// if_matched_stmt:
-//     IF expression THEN if_matched_stmt ELSE if_matched_stmt
-//     | statement
-//     ;
-
-// optional_tail:
-//     ELSE tail
-//     | %empty
-//     ;
-
-// tail:
-//     IF expression THEN tail
-//     | statement
 
 variable:
     ID {

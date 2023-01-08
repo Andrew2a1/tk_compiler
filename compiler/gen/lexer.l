@@ -29,6 +29,7 @@ blank   [ \t\r]
 program   return yy::parser::make_PROGRAM(loc);
 function  return yy::parser::make_FUNCTION(loc);
 procedure return yy::parser::make_PROCEDURE(loc);
+while     return yy::parser::make_WHILE(loc);
 read      return yy::parser::make_READ(loc);
 write     return yy::parser::make_WRITE(loc);
 var       return yy::parser::make_VAR(loc);
