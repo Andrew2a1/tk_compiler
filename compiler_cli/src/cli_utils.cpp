@@ -45,7 +45,7 @@ void print_symbol_table(const SymbolTable &table)
             value_str = (symbol.symbol_type == SymbolType::Constant) ? std::to_string(symbol.value) : "-";
         }
 
-        const std::string offset_str = (symbol.symbol_type != SymbolType::Constant) ? std::to_string(symbol.offset) : "-";
+        const std::string offset_str = (symbol.symbol_type == SymbolType::Variable) ? std::to_string(symbol.offset) : "-";
         symtable.add_row({symbol.id, symbol_type_to_str(symbol.symbol_type), var_type_to_str(symbol.var_type), value_str, offset_str});
     }
 
