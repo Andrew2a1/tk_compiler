@@ -33,7 +33,7 @@ int SymbolTable::type_size(VariableType var_type) const
         case VariableType::Real:
             return 8;
     }
-    throw std::runtime_error("Cannot determine type size");
+    return -1;
 }
 
 int SymbolTable::add_constant(int value, VariableType var_type)

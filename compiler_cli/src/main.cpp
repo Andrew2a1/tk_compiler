@@ -48,17 +48,26 @@ int main(int argc, char *argv[])
     Driver driver(out, in);
     driver.set_location_filename(input_filename);
     driver.set_debug(trace_scanning, trace_parsing);
-    const int result = driver.parse();
 
-    if (result != 0)
+    int parse_result = 0;
+
+    try
+    {
+        parse_result = driver.parse();
+    }
+    catch (std::runtime_error &)
+    {
+        parse_result = -1;
+    }
+
+    if (parse_result != 0)
     {
         std::cerr << "Compilation failed." << std::endl;
     }
-    else
-    {
-        print_symbol_table(driver.symbol_table);
-    }
+
+    std::cout << std::endl << "Symbol table: " << std::endl;
+    print_symbol_table(driver.symbol_table);
 
     std::locale::global(std::locale("C"));
-    return result;
+    return parse_result;
 }
