@@ -61,6 +61,8 @@ void Driver::gencode(const std::string& code, int op1, int op2, int op3, bool ge
     output_stream << ' ' << symbol1.as_operand() << ',' << symbol2.as_operand() << ',' << symbol3.as_operand() << std::endl;
 }
 
+void Driver::genlabel(int label) { output_stream << symbol_table.symbols[label].id << ':' << std::endl; }
+
 int Driver::gencode_conversions(const std::string& code, int op1, int op2)
 {
     const auto s1_type = symbol_table.symbols[op1].var_type;
@@ -99,9 +101,9 @@ int Driver::gencode_relop(const std::string& relop_code, int op1, int op2)
     gencode(relop_code, op1, op2, true_label);
     gencode("mov", zero_const, result_var);
     gencode("jump", end_label);
-    gencode(symbol_table.symbols[true_label].id + ":");
+    genlabel(true_label);
     gencode("mov", one_const, result_var);
-    gencode(symbol_table.symbols[end_label].id + ":");
+    genlabel(end_label);
 
     return result_var;
 }
