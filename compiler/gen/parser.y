@@ -180,7 +180,24 @@ statement:
             drv.gencode("write", id);
         }
     }
-    | IF expression THEN statement ELSE statement // if_stmt
+    | IF expression {
+        const int label = drv.symbol_table.add_label();
+        const int zero_const = drv.symbol_table.add_constant(0);
+        drv.gencode("je", $2, zero_const, label);
+        myGenCode(EQ, label1, true, $2, true, num, true);
+        $2 = label;
+    }
+    THEN statement {
+        int label2 = insertLabel();
+				myGenCode(JUMP, label2, true, -1, true, -1, true);
+				myGenCode(LABEL, $2, true, -1, true, -1, true);
+				$5 = label2;
+                }
+    ELSE statement {
+				myGenCode(LABEL, $5, true, -1, true, -1, true);
+			}
+
+     // if_stmt
     // | procedure_statement
     // | compound_statement
     // | WHILE expression DO statement
