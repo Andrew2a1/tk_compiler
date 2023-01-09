@@ -79,6 +79,7 @@
 %token <int> INT_NUMBER
 %token <double> REAL_NUMBER
 
+%nterm <int> id
 %nterm <std::vector<std::string>> identifier_list
 %nterm <Type> type
 %nterm <VariableType> standard_type
@@ -234,14 +235,48 @@ statement:
 empty: %empty { $$ = std::vector<int>{}; }
 
 variable:
+    id {
+        $$ = $1;
+    }
+    | id LSBRACKET expression RSBRACKET {
+        const auto expression_type = drv.symbol_table.symbols[$3].var_type.type;
+        int expr = $3;
+
+        if(expression_type == VariableType::Real) {
+            const int conversion_var = drv.symbol_table.add_tmp(VariableType::Integer);
+            drv.gencode("realtoint", expr, conversion_var);
+            expr = conversion_var;
+        }
+
+        if(!drv.symbol_table.symbols[$1].var_type.is_array()) {
+            drv.error("Id: " + drv.symbol_table.symbols[$1].id + " is not an array");
+        }
+
+        const auto array_var_type = drv.symbol_table.symbols[$1].var_type;
+        const auto &array_info = std::get<ArrayTypeInfo>(array_var_type.type_info);
+
+        const int address_tmp = drv.symbol_table.add_tmp(VariableType::Integer);
+        const int output_ref_var = drv.symbol_table.add_tmp(VariableType::Integer);
+        const int start_index_const = drv.symbol_table.add_constant(array_info.start_index);
+        const int type_size_const = drv.symbol_table.add_constant(drv.symbol_table.type_size(array_var_type.type));
+        const int var_offset_const = drv.symbol_table.add_constant(drv.symbol_table.symbols[$1].offset);
+
+        drv.gencode("sub", expr, start_index_const, address_tmp);
+        drv.gencode("mul", address_tmp, type_size_const, address_tmp);
+        drv.gencode("add", var_offset_const, address_tmp, output_ref_var);
+        drv.symbol_table.to_ref(output_ref_var, array_var_type.type);
+
+        $$ = output_ref_var;
+    }
+    ;
+
+id:
     ID {
         $$ = drv.symbol_table.find_symbol($1);
         if($$ < 0) {
             drv.error("Variable '" + $1 + "' has not been declarated");
         }
     }
-    // | ID '[' expression ']'
-    ;
 
 expression_list:
     expression {

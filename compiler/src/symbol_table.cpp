@@ -1,6 +1,7 @@
 #include "symbol_table.h"
 
 #include <algorithm>
+#include <cassert>
 #include <iostream>
 #include <sstream>
 #include <stdexcept>
@@ -30,7 +31,11 @@ int SymbolTable::type_size(const Type &var_type) const
     if (var_type.is_array())
     {
         const auto &array_info = std::get<ArrayTypeInfo>(var_type.type_info);
-        return base_size * (array_info.end_index - array_info.start_index);
+        return base_size * (array_info.end_index - array_info.start_index + 1);
+    }
+    if (std::get<StandardTypeInfo>(var_type.type_info).is_reference)
+    {
+        return type_size(VariableType::Integer);
     }
     return base_size;
 }
@@ -59,11 +64,12 @@ int SymbolTable::add_constant(double value, VariableType var_type)
     return symbols.size() - 1;
 }
 
-int SymbolTable::add_tmp(VariableType var_type)
+int SymbolTable::add_tmp(VariableType var_type, bool is_ref)
 {
-    symbols.push_back({"$t" + std::to_string(tmp_var_count), Type{var_type}, SymbolType::Variable, -1, global_offset});
+    const Type type{var_type, StandardTypeInfo{is_ref}};
+    symbols.push_back({"$t" + std::to_string(tmp_var_count), type, SymbolType::Variable, -1, global_offset});
 
-    global_offset += type_size(var_type);
+    global_offset += type_size(type);
     tmp_var_count += 1;
 
     return symbols.size() - 1;
@@ -74,4 +80,12 @@ int SymbolTable::add_label()
     symbols.push_back({"L" + std::to_string(label_count), Type{VariableType::Integer}, SymbolType::Label, -1, -1});
     label_count += 1;
     return symbols.size() - 1;
+}
+
+int SymbolTable::to_ref(int symbol, VariableType var_type)
+{
+    assert(symbols[symbol].symbol_type == SymbolType::Variable);
+    assert(symbols[symbol].var_type.is_array() == false);
+    symbols[symbol].var_type = Type{var_type, StandardTypeInfo{/* is_reference = */ true}};
+    return symbol;
 }

@@ -22,7 +22,15 @@ std::string var_type_to_str(const Type &var_type)
     if (var_type.is_array())
     {
         const auto &array_info = std::get<ArrayTypeInfo>(var_type.type_info);
-        ss << "[" << array_info.start_index << ".." << array_info.end_index << "]";
+        ss << '[' << array_info.start_index << ".." << array_info.end_index << ']';
+    }
+    else
+    {
+        const auto &array_info = std::get<StandardTypeInfo>(var_type.type_info);
+        if (array_info.is_reference)
+        {
+            ss << '*';
+        }
     }
 
     return ss.str();

@@ -22,8 +22,10 @@ public:
     int add_constant(int value, VariableType var_type = VariableType::Integer);
     int add_constant(double value, VariableType var_type = VariableType::Real);
 
-    int add_tmp(VariableType var_type);
+    int add_tmp(VariableType var_type, bool is_ref = false);
     int add_label();
+
+    int to_ref(int symbol, VariableType var_type);
 
     int find_symbol(const std::string &id) const;
     int type_size(const Type &var_type) const;
