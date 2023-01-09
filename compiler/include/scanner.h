@@ -16,6 +16,6 @@ private:
 
 public:
     explicit Scanner(Driver &drv) : drv(drv){};
-    virtual ~Scanner() {}
+    virtual ~Scanner() = default;
     virtual yy::parser::symbol_type get_next_token();
 };

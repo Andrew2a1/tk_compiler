@@ -36,6 +36,8 @@
     INT       "integer"
     FUNCTION  "function"
     PROCEDURE "procedure"
+    ARRAY     "array"
+    OF        "of"
     WHILE     "while"
     DO        "do"
     REAL      "real"
@@ -55,6 +57,8 @@
     COLON     ":"
     LPAREN    "("
     RPAREN    ")"
+    LSBRACKET "["
+    RSBRACKET "]"
     ASSIGN    ":="
     PLUS      "+"
     STAR      "*"
@@ -109,6 +113,9 @@ declarations:
 
 type:
     standard_type { $$ = $1; }
+    | ARRAY LSBRACKET INT_NUMBER DOT DOT INT_NUMBER RSBRACKET OF standard_type {
+        $$ = $9;
+    }
     ;
 
 standard_type:
