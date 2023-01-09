@@ -24,7 +24,7 @@ TEST_F(ParseRealNumbersTest, SupportsRealVariableDeclaration)
 
     ASSERT_EQ(driver.parse(), 0);
     ASSERT_EQ(driver.symbol_table.symbols.size(), 2);
-    ASSERT_EQ(driver.symbol_table.symbols.front().var_type, VariableType::Real);
+    ASSERT_EQ(driver.symbol_table.symbols.front().var_type.type, VariableType::Real);
     ASSERT_EQ(output.str(), expected);
 }
 

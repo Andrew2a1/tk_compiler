@@ -17,7 +17,7 @@ private:
     int label_count = 0;
 
 public:
-    void create_variables(const std::vector<std::string> &variable_ids, VariableType var_type);
+    void create_variables(const std::vector<std::string> &variable_ids, const Type &type);
 
     int add_constant(int value, VariableType var_type = VariableType::Integer);
     int add_constant(double value, VariableType var_type = VariableType::Real);
@@ -26,5 +26,6 @@ public:
     int add_label();
 
     int find_symbol(const std::string &id) const;
+    int type_size(const Type &var_type) const;
     int type_size(VariableType var_type) const;
 };

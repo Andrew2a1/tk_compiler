@@ -38,7 +38,7 @@ void Driver::gencode(const std::string& code, int op1, bool generate_instr_postf
 {
     const auto& symbol1 = symbol_table.symbols[op1];
 
-    geninstr(code, symbol1.var_type, generate_instr_postfix);
+    geninstr(code, symbol1.var_type.type, generate_instr_postfix);
     output_stream << ' ' << symbol1.as_operand() << std::endl;
 }
 
@@ -47,7 +47,7 @@ void Driver::gencode(const std::string& code, int op1, int op2, bool generate_in
     const auto& symbol1 = symbol_table.symbols[op1];
     const auto& symbol2 = symbol_table.symbols[op2];
 
-    geninstr(code, symbol1.var_type, generate_instr_postfix);
+    geninstr(code, symbol1.var_type.type, generate_instr_postfix);
     output_stream << ' ' << symbol1.as_operand() << ',' << symbol2.as_operand() << std::endl;
 }
 
@@ -57,7 +57,7 @@ void Driver::gencode(const std::string& code, int op1, int op2, int op3, bool ge
     const auto& symbol2 = symbol_table.symbols[op2];
     const auto& symbol3 = symbol_table.symbols[op3];
 
-    geninstr(code, symbol1.var_type, generate_instr_postfix);
+    geninstr(code, symbol1.var_type.type, generate_instr_postfix);
     output_stream << ' ' << symbol1.as_operand() << ',' << symbol2.as_operand() << ',' << symbol3.as_operand() << std::endl;
 }
 
@@ -65,8 +65,8 @@ void Driver::genlabel(int label) { output_stream << symbol_table.symbols[label].
 
 int Driver::gencode_conversions(const std::string& code, int op1, int op2)
 {
-    const auto s1_type = symbol_table.symbols[op1].var_type;
-    const auto s2_type = symbol_table.symbols[op2].var_type;
+    const auto s1_type = symbol_table.symbols[op1].var_type.type;
+    const auto s2_type = symbol_table.symbols[op2].var_type.type;
 
     if (s1_type != s2_type)
     {
@@ -108,11 +108,11 @@ int Driver::gencode_relop(const std::string& relop_code, int op1, int op2)
     return result_var;
 }
 
-void Driver::geninstr(const std::string& code, VariableType instr_var_type, bool generate_instr_postfix)
+void Driver::geninstr(const std::string& code, VariableType instr_type, bool generate_instr_postfix)
 {
     output_stream << code;
     if (generate_instr_postfix)
     {
-        output_stream << instr_postfix(instr_var_type);
+        output_stream << instr_postfix(instr_type);
     }
 }

@@ -80,7 +80,7 @@
 %token <double> REAL_NUMBER
 
 %nterm <std::vector<std::string>> identifier_list
-%nterm <VariableType> type
+%nterm <Type> type
 %nterm <VariableType> standard_type
 %nterm <int> variable
 %nterm <int> expression
@@ -112,9 +112,11 @@ declarations:
     ;
 
 type:
-    standard_type { $$ = $1; }
+    standard_type { $$ = Type{$1}; }
     | ARRAY LSBRACKET INT_NUMBER DOT DOT INT_NUMBER RSBRACKET OF standard_type {
-        $$ = $9;
+        const int start_index = $3;
+        const int end_index = $6;
+        $$ = Type{$9, ArrayTypeInfo{start_index, end_index}};
     }
     ;
 
@@ -163,8 +165,8 @@ statement_list:
 
 statement:
     variable ASSIGN expression  {
-        const auto var_type = drv.symbol_table.symbols[$1].var_type;
-        const auto expr_type = drv.symbol_table.symbols[$3].var_type;
+        const auto var_type = drv.symbol_table.symbols[$1].var_type.type;
+        const auto expr_type = drv.symbol_table.symbols[$3].var_type.type;
         int dest_var = $3;
 
         if(var_type != expr_type) {
@@ -276,7 +278,7 @@ expression:
 simple_expression:
     term
     | MINUS term {
-        const auto term_type = drv.symbol_table.symbols[$2].var_type;
+        const auto term_type = drv.symbol_table.symbols[$2].var_type.type;
         const int zero_const = drv.symbol_table.add_constant(0, term_type);
         const int result_var = drv.symbol_table.add_tmp(term_type);
         drv.gencode("sub", zero_const, $2, result_var);
@@ -328,7 +330,7 @@ factor:
         $$ = $2;
     }
     | NOT factor {
-        const auto factor_type = drv.symbol_table.symbols[$2].var_type;
+        const auto factor_type = drv.symbol_table.symbols[$2].var_type.type;
         int factor = $2;
 
         if(factor_type == VariableType::Real) {

@@ -45,5 +45,5 @@ public:
     int gencode_relop(const std::string& relop_code, int op1, int op2);
 
 private:
-    void geninstr(const std::string& code, VariableType common_var_type, bool generate_instr_postfix);
+    void geninstr(const std::string& code, VariableType instr_type, bool generate_instr_postfix);
 };

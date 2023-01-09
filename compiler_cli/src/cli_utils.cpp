@@ -1,17 +1,31 @@
 #include "cli_utils.h"
 
+#include <sstream>
 #include <tabulate/table.hpp>
 
-std::string var_type_to_str(VariableType var_type)
+std::string var_type_to_str(const Type &var_type)
 {
-    switch (var_type)
+    std::stringstream ss;
+    switch (var_type.type)
     {
         case VariableType::Integer:
-            return "integer";
+            ss << "integer";
+            break;
         case VariableType::Real:
-            return "real";
+            ss << "real";
+            break;
+        default:
+            ss << "UNKNOWN";
+            break;
     }
-    return "UNKNOWN";
+
+    if (var_type.is_array())
+    {
+        const auto &array_info = std::get<ArrayTypeInfo>(var_type.type_info);
+        ss << "[" << array_info.start_index << ".." << array_info.end_index << "]";
+    }
+
+    return ss.str();
 }
 
 std::string symbol_type_to_str(SymbolType symbol_type)
@@ -36,7 +50,7 @@ void print_symbol_table(const SymbolTable &table)
     for (const auto &symbol : table.symbols)
     {
         std::string value_str;
-        if (symbol.var_type == VariableType::Integer)
+        if (symbol.var_type.type == VariableType::Integer)
         {
             value_str = (symbol.symbol_type == SymbolType::Constant) ? std::to_string(static_cast<int>(symbol.value)) : "-";
         }

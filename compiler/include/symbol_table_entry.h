@@ -8,7 +8,7 @@
 struct SymbolTableEntry
 {
     std::string id;
-    VariableType var_type;
+    Type var_type;
     SymbolType symbol_type;
     double value;
     int offset;
