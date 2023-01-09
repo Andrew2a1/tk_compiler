@@ -7,50 +7,56 @@
     },
     "configurePresets": [
         {
-            "name": "gcc_debug",
-            "displayName": "GCC [Debug]",
+            "name": "gcc",
+            "hidden": true,
             "binaryDir": "${sourceDir}/build/${presetName}",
             "generator": "Unix Makefiles",
             "cacheVariables": {
                 "CMAKE_INSTALL_PREFIX": "${sourceDir}/build/${presetName}/install",
                 "CMAKE_C_COMPILER": "gcc",
-                "CMAKE_CXX_COMPILER": "g++",
+                "CMAKE_CXX_COMPILER": "g++"
+            }
+        },
+        {
+            "name": "gcc_debug",
+            "inherits": "gcc",
+            "displayName": "GCC [Debug]",
+            "cacheVariables": {
                 "CMAKE_BUILD_TYPE": "Debug"
             }
         },
         {
             "name": "gcc_release",
+            "inherits": "gcc",
             "displayName": "GCC [Release]",
-            "binaryDir": "${sourceDir}/build/${presetName}",
-            "generator": "Unix Makefiles",
             "cacheVariables": {
-                "CMAKE_INSTALL_PREFIX": "${sourceDir}/build/${presetName}/install",
-                "CMAKE_C_COMPILER": "gcc",
-                "CMAKE_CXX_COMPILER": "g++",
                 "CMAKE_BUILD_TYPE": "Release"
             }
         },
         {
-            "name": "clang_debug",
-            "displayName": "Clang [Debug]",
+            "name": "clang",
+            "hidden": true,
             "binaryDir": "${sourceDir}/build/${presetName}",
             "generator": "Unix Makefiles",
             "cacheVariables": {
                 "CMAKE_INSTALL_PREFIX": "${sourceDir}/build/${presetName}/install",
                 "CMAKE_C_COMPILER": "clang",
-                "CMAKE_CXX_COMPILER": "clang++",
+                "CMAKE_CXX_COMPILER": "clang++"
+            }
+        },
+        {
+            "name": "clang_debug",
+            "inherits": "clang",
+            "displayName": "Clang [Debug]",
+            "cacheVariables": {
                 "CMAKE_BUILD_TYPE": "Debug"
             }
         },
         {
             "name": "clang_release",
+            "inherits": "clang",
             "displayName": "Clang [Release]",
-            "binaryDir": "${sourceDir}/build/${presetName}",
-            "generator": "Unix Makefiles",
             "cacheVariables": {
-                "CMAKE_INSTALL_PREFIX": "${sourceDir}/build/${presetName}/install",
-                "CMAKE_C_COMPILER": "clang",
-                "CMAKE_CXX_COMPILER": "clang++",
                 "CMAKE_BUILD_TYPE": "Release"
             }
         }
