@@ -37,6 +37,7 @@
     FUNCTION  "function"
     PROCEDURE "procedure"
     WHILE     "while"
+    DO        "do"
     REAL      "real"
     DIV       "div"
     MOD       "mod"
@@ -84,6 +85,7 @@
 %nterm <int> simple_expression
 %nterm <int> term
 %nterm <int> factor
+%nterm <std::vector<int>> empty
 
 %%
 
@@ -139,9 +141,7 @@ standard_type:
 //     ;
 
 compound_statement:
-    BEGIN
-    optional_statements
-    END
+    BEGIN optional_statements END
     ;
 
 optional_statements:
@@ -199,10 +199,30 @@ statement:
         const int endif_label = $5;
         drv.genlabel(endif_label);
     }
+    | WHILE empty {
+        const int start_label = drv.symbol_table.add_label();
+        const int end_label = drv.symbol_table.add_label();
+        drv.genlabel(start_label);
+        ($2).push_back(start_label);
+        ($2).push_back(end_label);
+    }
+    expression DO {
+        const int expression = $4;
+        const int end_label = ($2).back();
+        const int zero_const = drv.symbol_table.add_constant(0);
+        drv.gencode("je", expression, zero_const, end_label);
+    }
+    statement {
+        const int start_label = ($2).front();
+        const int end_label = ($2).back();
+        drv.gencode("jump", start_label);
+        drv.genlabel(end_label);
+    }
+    | compound_statement { $$ = -1; }
     // | procedure_statement
-    // | compound_statement
-    // | WHILE expression DO statement
     ;
+
+empty: %empty { $$ = std::vector<int>{}; }
 
 variable:
     ID {

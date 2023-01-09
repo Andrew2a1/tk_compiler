@@ -45,6 +45,7 @@ not       return yy::parser::make_NOT(loc);
 if        return yy::parser::make_IF(loc);
 then      return yy::parser::make_THEN(loc);
 else      return yy::parser::make_ELSE(loc);
+do        return yy::parser::make_DO(loc);
 \<\>      return yy::parser::make_NE(loc);
 \<=       return yy::parser::make_LE(loc);
 \>=       return yy::parser::make_GE(loc);

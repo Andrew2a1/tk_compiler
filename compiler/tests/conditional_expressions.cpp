@@ -78,3 +78,35 @@ TEST_F(ParseConditionalExpressions, ParsesNestedConditionalStatements)
     ASSERT_EQ(driver.parse(), 0);
     ASSERT_EQ(output.str(), expected);
 }
+
+TEST_F(ParseConditionalExpressions, ParsesIfThenElseWithCompound)
+{
+    std::istringstream input(
+        "program example(input, output);\n"
+        "var x: integer;\n"
+        "begin\n"
+        "if x then\n"
+        "begin\n"
+        "  write(1);\n"
+        "  write(1.5)\n"
+        "end\n"
+        "else\n"
+        "  write(0)\n"
+        "end.\n");
+
+    const std::string expected =
+        "je.i 0,#0,#L0\n"
+        "write.i #1\n"
+        "write.r #1.5\n"
+        "jump.i #L1\n"
+        "L0:\n"
+        "write.i #0\n"
+        "L1:\n"
+        "exit\n";
+
+    std::ostringstream output;
+    Driver driver(output, input);
+
+    ASSERT_EQ(driver.parse(), 0);
+    ASSERT_EQ(output.str(), expected);
+}
