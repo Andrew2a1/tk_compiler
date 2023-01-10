@@ -27,6 +27,7 @@ set(TESTS
     tests/conditional_expressions.cpp
     tests/while_loop.cpp
     tests/arrays.cpp
+    tests/functions.cpp
 )
 
 set(FLEX_BISON_FILES

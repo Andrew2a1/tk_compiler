@@ -97,7 +97,7 @@
 program:
     PROGRAM ID LPAREN identifier_list RPAREN SEMICOL
     declarations
-    // subprogram_declarations
+    subprogram_declarations
     compound_statement
     DOT { drv.gencode("exit"); }
     ;
@@ -126,29 +126,29 @@ standard_type:
     | REAL { $$ = VariableType::Real; }
     ;
 
-// subprogram_declarations:
-//     subprogram_declarations subprogram_declaration SEMICOL
-//     | %empty
-//     ;
+subprogram_declarations:
+    subprogram_declarations subprogram_declaration SEMICOL
+    | %empty
+    ;
 
-// subprogram_declaration:
-    // subprogram_head declarations compound_statement
-    // ;
+subprogram_declaration:
+    subprogram_head declarations compound_statement
+    ;
 
-// subprogram_head:
-//     FUNCTION ID arguments COLON standard_type SEMICOL
-//     | PROCEDURE ID arguments SEMICOL
-//     ;
+subprogram_head:
+    FUNCTION ID arguments COLON standard_type SEMICOL
+    | PROCEDURE ID arguments SEMICOL
+    ;
 
-// arguments:
-//     LPAREN parameter_list RPAREN
-//     | %empty
-//     ;
+arguments:
+    LPAREN parameter_list RPAREN
+    | %empty
+    ;
 
-// parameter_list:
-//     identifier_list COLON type
-//     | parameter_list SEMICOL identifier_list : type
-//     ;
+parameter_list:
+    identifier_list COLON type
+    | parameter_list SEMICOL identifier_list COLON type
+    ;
 
 compound_statement:
     BEGIN optional_statements END
@@ -229,8 +229,12 @@ statement:
         drv.genlabel(end_label);
     }
     | compound_statement { $$ = -1; }
-    // | procedure_statement
+    | procedure_statement { $$ = -1; }
     ;
+
+procedure_statement:
+    id
+    | id LPAREN expression_list RPAREN
 
 empty: %empty { $$ = std::vector<int>{}; }
 
@@ -354,7 +358,7 @@ term:
 
 factor:
     variable
-    // | ID LPAREN expression_list RPAREN
+    | id LPAREN expression_list RPAREN
     | INT_NUMBER {
         $$ = drv.symbol_table.add_constant($1);
     }
