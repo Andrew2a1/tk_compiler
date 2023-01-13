@@ -89,6 +89,8 @@
 %nterm <int> term
 %nterm <int> factor
 %nterm <Type> type
+%nterm <int> subprogram_head
+%nterm <int> declarations
 %nterm <VariableType> standard_type
 %nterm <std::vector<std::string>> identifier_list
 %nterm <std::vector<int>> expression_list
@@ -100,8 +102,15 @@
 
 program:
     PROGRAM ID LPAREN identifier_list RPAREN SEMICOL
-    declarations
-    subprogram_declarations
+    declarations {
+        const int main_entrypoint = drv.symbol_table.add_label();
+        drv.gencode("jump", main_entrypoint);
+        $7 = main_entrypoint;
+    }
+    subprogram_declarations {
+        const int main_entrypoint = $7;
+        drv.genlabel(main_entrypoint);
+    }
     compound_statement
     DOT { drv.gencode("exit"); }
     ;
@@ -113,7 +122,7 @@ identifier_list:
 
 declarations:
     declarations VAR identifier_list COLON type SEMICOL { drv.symbol_table.create_variables($3, $5); }
-    | %empty
+    | %empty { $$ = -1; }
     ;
 
 type:
@@ -137,7 +146,8 @@ subprogram_declarations:
 
 subprogram_declaration:
     subprogram_head {
-        drv.enter_function_mode();
+        drv.genlabel($1);
+        drv.enter_function_mode($1);
     }
     declarations
     compound_statement {
@@ -146,19 +156,15 @@ subprogram_declaration:
     ;
 
 subprogram_head:
-    FUNCTION ID {
-        drv.symbol_table.create_function($2);
-    }
-    arguments COLON standard_type SEMICOL {
+    FUNCTION ID arguments COLON standard_type SEMICOL {
+        $$ = drv.symbol_table.create_function($2);
         auto &function_entry = drv.symbol_table.symbols.back();
-        function_entry.function_info = FunctionInfo{$4, Type{$6}};
+        function_entry.function_info = FunctionInfo{$3, Type{$5}};
     }
-    | PROCEDURE ID {
-        drv.symbol_table.create_function($2);
-    }
-    arguments SEMICOL {
+    | PROCEDURE ID arguments SEMICOL {
+        $$ = drv.symbol_table.create_function($2);
         auto &procedure_entry = drv.symbol_table.symbols.back();
-        procedure_entry.function_info = FunctionInfo{$4, std::nullopt};
+        procedure_entry.function_info = FunctionInfo{$3, std::nullopt};
     }
     ;
 

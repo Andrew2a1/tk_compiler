@@ -20,6 +20,8 @@ TEST_F(ParseBooleanOperations, ParseOrAndOperators)
         "end.\n");
 
     const std::string expected =
+        "jump.i #L0\n"
+        "L0:\n"
         "mov.i #5,0\n"
         "and.i 0,#1,8\n"
         "or.i 8,0,12\n"
@@ -43,6 +45,8 @@ TEST_F(ParseBooleanOperations, ParseNotOperator)
         "end.\n");
 
     const std::string expected =
+        "jump.i #L0\n"
+        "L0:\n"
         "not.i 4,8\n"
         "and.i #1,8,12\n"
         "mov.i 12,0\n"
@@ -65,6 +69,8 @@ TEST_F(ParseBooleanOperations, NotOperatorIsAlwaysForTypeInt)
         "end.\n");
 
     const std::string expected =
+        "jump.i #L0\n"
+        "L0:\n"
         "realtoint.r 8,16\n"
         "not.i 16,20\n"
         "and.i #1,20,24\n"

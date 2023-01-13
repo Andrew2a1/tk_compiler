@@ -16,11 +16,16 @@ TEST_F(ParserGenerateOutputTest, GeneratesExitForEmptyProgram)
         "begin\n"
         "end.\n");
 
+    const std::string expected =
+        "jump.i #L0\n"
+        "L0:\n"
+        "exit\n";
+
     std::ostringstream output;
     Driver driver(output, input);
 
     ASSERT_EQ(driver.parse(), 0);
-    ASSERT_EQ(output.str(), "exit\n");
+    ASSERT_EQ(output.str(), expected);
 }
 
 TEST_F(ParserGenerateOutputTest, DoesNotGenerateInstructionsOnlyForVarDeclaration)
@@ -32,11 +37,16 @@ TEST_F(ParserGenerateOutputTest, DoesNotGenerateInstructionsOnlyForVarDeclaratio
         "begin\n"
         "end.");
 
+    const std::string expected =
+        "jump.i #L0\n"
+        "L0:\n"
+        "exit\n";
+
     std::ostringstream output;
     Driver driver(output, input);
 
     ASSERT_EQ(driver.parse(), 0);
-    ASSERT_EQ(output.str(), "exit\n");
+    ASSERT_EQ(output.str(), expected);
 }
 
 TEST_F(ParserGenerateOutputTest, GeneratesMovOnVariableAssignment)
@@ -50,6 +60,8 @@ TEST_F(ParserGenerateOutputTest, GeneratesMovOnVariableAssignment)
         "end.");
 
     const std::string expected_data =
+        "jump.i #L0\n"
+        "L0:\n"
         "mov.i #3,0\n"
         "exit\n";
 
@@ -77,6 +89,8 @@ TEST_F(ParserGenerateOutputTest, GeneratesValidOutputForManyOperations)
         "end.\n");
 
     std::string expected_data =
+        "jump.i #L0\n"
+        "L0:\n"
         "read.i 0\n"
         "read.i 4\n"
         "mov.i #1,12\n"

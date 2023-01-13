@@ -3,6 +3,7 @@
 #include <cstdio>
 #include <fstream>
 #include <map>
+#include <sstream>
 #include <string>
 #include <vector>
 
@@ -17,8 +18,11 @@ public:
     yy::location location;
 
 private:
-    std::ostream& output_stream;
+    std::ostream* output_stream;
     std::istream& input_stream;
+
+    std::ostringstream local_output;
+    std::ostream* global_output;
 
     Scanner scanner;
     yy::parser parser;
@@ -27,7 +31,8 @@ private:
 
     bool trace_scanning = false;
     bool trace_parsing = false;
-    bool in_function_mode = false;
+
+    int subprogram_symbol_index = -1;
 
 public:
     Driver(std::ostream& output, std::istream& input);
@@ -37,7 +42,7 @@ public:
     void set_location_filename(const std::string& filename);
     void error(const std::string& message);
 
-    void enter_function_mode();
+    void enter_function_mode(int function_entry_idx);
     void leave_function_mode();
 
     void gencode(const std::string& code);

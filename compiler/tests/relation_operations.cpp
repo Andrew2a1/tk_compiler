@@ -19,12 +19,14 @@ TEST_F(ParseRelationOperations, ParsesEqualsOperator)
         "end.\n");
 
     const std::string expected =
-        "je.i 0,#1,#L0\n"
-        "mov.i #0,8\n"
-        "jump.i #L1\n"
+        "jump.i #L0\n"
         "L0:\n"
-        "mov.i #1,8\n"
+        "je.i 0,#1,#L1\n"
+        "mov.i #0,8\n"
+        "jump.i #L2\n"
         "L1:\n"
+        "mov.i #1,8\n"
+        "L2:\n"
         "mov.i 8,4\n"
         "exit\n";
 
@@ -46,12 +48,14 @@ TEST_F(ParseRelationOperations, ParsesEqualsOperatorWithRealNumbers)  // No conv
         "end.\n");
 
     const std::string expected =
-        "je.r 4,0,#L0\n"
-        "mov.i #0,12\n"
-        "jump.i #L1\n"
+        "jump.i #L0\n"
         "L0:\n"
-        "mov.i #1,12\n"
+        "je.r 4,0,#L1\n"
+        "mov.i #0,12\n"
+        "jump.i #L2\n"
         "L1:\n"
+        "mov.i #1,12\n"
+        "L2:\n"
         "mov.i 12,0\n"
         "exit\n";
 
@@ -73,12 +77,14 @@ TEST_F(ParseRelationOperations, ParsesLessEqualsOperator)
         "end.\n");
 
     const std::string expected =
-        "jle.i 0,#4,#L0\n"
-        "mov.i #0,12\n"
-        "jump.i #L1\n"
+        "jump.i #L0\n"
         "L0:\n"
-        "mov.i #1,12\n"
+        "jle.i 0,#4,#L1\n"
+        "mov.i #0,12\n"
+        "jump.i #L2\n"
         "L1:\n"
+        "mov.i #1,12\n"
+        "L2:\n"
         "inttoreal.i 12,16\n"
         "mov.r 16,4\n"
         "exit\n";
@@ -100,12 +106,14 @@ TEST_F(ParseRelationOperations, ParsesNotEqualOperatorForRealNumbers)
         "end.\n");
 
     const std::string expected =
-        "jne.r 0,#4,#L0\n"
-        "mov.i #0,16\n"
-        "jump.i #L1\n"
+        "jump.i #L0\n"
         "L0:\n"
-        "mov.i #1,16\n"
+        "jne.r 0,#4,#L1\n"
+        "mov.i #0,16\n"
+        "jump.i #L2\n"
         "L1:\n"
+        "mov.i #1,16\n"
+        "L2:\n"
         "inttoreal.i 16,20\n"
         "mov.r 20,8\n"
         "exit\n";

@@ -22,12 +22,14 @@ TEST_F(ParseConditionalExpressions, ParsesIfThenElseStatement)
         "end.\n");
 
     const std::string expected =
-        "je.i 0,#0,#L0\n"
-        "write.i #1\n"
-        "jump.i #L1\n"
+        "jump.i #L0\n"
         "L0:\n"
-        "write.i #0\n"
+        "je.i 0,#0,#L1\n"
+        "write.i #1\n"
+        "jump.i #L2\n"
         "L1:\n"
+        "write.i #0\n"
+        "L2:\n"
         "exit\n";
 
     std::ostringstream output;
@@ -53,23 +55,25 @@ TEST_F(ParseConditionalExpressions, ParsesNestedConditionalStatements)
         "end.\n");
 
     const std::string expected =
-        "je.i 0,#0,#L0\n"
-        "je.i 4,#0,#L1\n"
-        "mov.i #0,8\n"
-        "jump.i #L2\n"
-        "L1:\n"
-        "mov.i #1,8\n"
-        "L2:\n"
-        "je.i 8,#0,#L3\n"
-        "write.i #2\n"
-        "jump.i #L4\n"
-        "L3:\n"
-        "write.i #1\n"
-        "L4:\n"
-        "jump.i #L5\n"
+        "jump.i #L0\n"
         "L0:\n"
-        "write.i #0\n"
+        "je.i 0,#0,#L1\n"
+        "je.i 4,#0,#L2\n"
+        "mov.i #0,8\n"
+        "jump.i #L3\n"
+        "L2:\n"
+        "mov.i #1,8\n"
+        "L3:\n"
+        "je.i 8,#0,#L4\n"
+        "write.i #2\n"
+        "jump.i #L5\n"
+        "L4:\n"
+        "write.i #1\n"
         "L5:\n"
+        "jump.i #L6\n"
+        "L1:\n"
+        "write.i #0\n"
+        "L6:\n"
         "exit\n";
 
     std::ostringstream output;
@@ -95,13 +99,15 @@ TEST_F(ParseConditionalExpressions, ParsesIfThenElseWithCompound)
         "end.\n");
 
     const std::string expected =
-        "je.i 0,#0,#L0\n"
+        "jump.i #L0\n"
+        "L0:\n"
+        "je.i 0,#0,#L1\n"
         "write.i #1\n"
         "write.r #1.5\n"
-        "jump.i #L1\n"
-        "L0:\n"
-        "write.i #0\n"
+        "jump.i #L2\n"
         "L1:\n"
+        "write.i #0\n"
+        "L2:\n"
         "exit\n";
 
     std::ostringstream output;

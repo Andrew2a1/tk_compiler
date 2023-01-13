@@ -23,7 +23,14 @@ TEST_F(ParseFunctions, ParseProcedureSyntax)
         "begin\n"
         "end.\n");
 
-    const std::string expected = "exit\n";
+    const std::string expected =
+        "jump.i #L0\n"
+        "f:\n"
+        "enter.i #0\n"
+        "leave\n"
+        "return\n"
+        "L0:\n"
+        "exit\n";
 
     std::ostringstream output;
     Driver driver(output, input);
@@ -46,7 +53,14 @@ TEST_F(ParseFunctions, ParseFunctionSyntax)
         "begin\n"
         "end.\n");
 
-    const std::string expected = "exit\n";
+    const std::string expected =
+        "jump.i #L0\n"
+        "f:\n"
+        "enter.i #0\n"
+        "leave\n"
+        "return\n"
+        "L0:\n"
+        "exit\n";
 
     std::ostringstream output;
     Driver driver(output, input);
@@ -69,6 +83,12 @@ TEST_F(ParseFunctions, GeneratesValidFunctionCall)
         "end.\n");
 
     const std::string expected =
+        "jump.i #L0\n"
+        "f:\n"
+        "enter.i #0\n"
+        "leave\n"
+        "return\n"
+        "L0:\n"
         "mov.i #1,4\n"
         "push.i #4\n"
         "push.i #8\n"
@@ -98,6 +118,12 @@ TEST_F(ParseFunctions, GeneratesValidFunctionCallWithConversions)
         "end.\n");
 
     const std::string expected =
+        "jump.i #L0\n"
+        "f:\n"
+        "enter.i #0\n"
+        "leave\n"
+        "return\n"
+        "L0:\n"
         "inttoreal.i 0,4\n"
         "push.i #4\n"
         "push.i #12\n"
@@ -128,6 +154,12 @@ TEST_F(ParseFunctions, GeneratesValidFunctionCallWithConversionsOfConstants)
         "end.\n");
 
     const std::string expected =
+        "jump.i #L0\n"
+        "f:\n"
+        "enter.i #0\n"
+        "leave\n"
+        "return\n"
+        "L0:\n"
         "mov.r #1,4\n"
         "push.i #4\n"
         "mov.i #2,12\n"
@@ -179,6 +211,12 @@ TEST_F(ParseFunctions, UseResultOfFunction)
         "end.\n");
 
     const std::string expected =
+        "jump.i #L0\n"
+        "f:\n"
+        "enter.i #0\n"
+        "leave\n"
+        "return\n"
+        "L0:\n"
         "push.i #0\n"
         "push.i #0\n"
         "push.i #4\n"

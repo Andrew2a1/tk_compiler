@@ -23,6 +23,12 @@ TEST_F(ParseProcedures, GeneratesValidProcedureCall)
         "end.\n");
 
     const std::string expected =
+        "jump.i #L0\n"
+        "f:\n"
+        "enter.i #0\n"
+        "leave\n"
+        "return\n"
+        "L0:\n"
         "call.i #f\n"
         "exit\n";
 
@@ -47,6 +53,12 @@ TEST_F(ParseProcedures, GeneratesValidProcedureCallWithArguments)
         "end.\n");
 
     const std::string expected =
+        "jump.i #L0\n"
+        "f:\n"
+        "enter.i #0\n"
+        "leave\n"
+        "return\n"
+        "L0:\n"
         "mov.i #1,4\n"
         "push.i #4\n"
         "call.i #f\n"
@@ -93,15 +105,21 @@ TEST_F(ParseProcedures, ProcedureCanBeUsedInIf)
         "end.\n");
 
     const std::string expected =
-        "je.i #1,#0,#L0\n"
+        "jump.i #L0\n"
+        "f:\n"
+        "enter.i #0\n"
+        "leave\n"
+        "return\n"
+        "L0:\n"
+        "je.i #1,#0,#L1\n"
         "mov.i #1,4\n"
         "push.i #4\n"
         "call.i #f\n"
         "incsp.i #4\n"
-        "jump.i #L1\n"
-        "L0:\n"
-        "write.i #1\n"
+        "jump.i #L2\n"
         "L1:\n"
+        "write.i #1\n"
+        "L2:\n"
         "exit\n";
 
     std::ostringstream output;

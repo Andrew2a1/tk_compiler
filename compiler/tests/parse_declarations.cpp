@@ -20,7 +20,7 @@ TEST_F(ParserParseDeclarationsTest, EmptyProgramShouldLeaveEmptySymbolTable)
     ASSERT_EQ(driver.symbol_table.symbols.size(), 0);
 
     driver.parse();
-    ASSERT_EQ(driver.symbol_table.symbols.size(), 0);
+    ASSERT_EQ(driver.symbol_table.symbols.size(), 1);
 }
 
 TEST_F(ParserParseDeclarationsTest, EmptyProgramWithOneVariableDeclaration)
@@ -33,7 +33,7 @@ TEST_F(ParserParseDeclarationsTest, EmptyProgramWithOneVariableDeclaration)
 
     Driver driver(std::cout, input);
     driver.parse();
-    ASSERT_EQ(driver.symbol_table.symbols.size(), 1);
+    ASSERT_EQ(driver.symbol_table.symbols.size(), 2);
 }
 
 TEST_F(ParserParseDeclarationsTest, EmptyProgramWithFourVariableDeclaration)
@@ -47,5 +47,5 @@ TEST_F(ParserParseDeclarationsTest, EmptyProgramWithFourVariableDeclaration)
 
     Driver driver(std::cout, input);
     driver.parse();
-    ASSERT_EQ(driver.symbol_table.symbols.size(), 4);
+    ASSERT_EQ(driver.symbol_table.symbols.size(), 5);
 }

@@ -19,7 +19,10 @@ TEST_F(ParseArrays, ParsesSyntaxWithArray)
         "begin\n"
         "end.\n");
 
-    const std::string expected = "exit\n";
+    const std::string expected =
+        "jump.i #L0\n"
+        "L0:\n"
+        "exit\n";
 
     std::ostringstream output;
     Driver driver(output, input);
@@ -38,6 +41,8 @@ TEST_F(ParseArrays, CanWriteToArrayAtAnyIndex)
         "end.\n");
 
     const std::string expected =
+        "jump.i #L0\n"
+        "L0:\n"
         "sub.i #0,#0,44\n"
         "mul.i 44,#4,44\n"
         "add.i #0,44,48\n"
@@ -62,6 +67,8 @@ TEST_F(ParseArrays, CanReadFromArrayAtAnyIndex)
         "end.\n");
 
     const std::string expected =
+        "jump.i #L0\n"
+        "L0:\n"
         "sub.i #2,#0,48\n"
         "mul.i 48,#4,48\n"
         "add.i #0,48,52\n"
@@ -86,6 +93,8 @@ TEST_F(ParseArrays, CanReadFromRealArrayAtAnyIndexWithConversion)
         "end.\n");
 
     const std::string expected =
+        "jump.i #L0\n"
+        "L0:\n"
         "sub.i #2,#0,92\n"
         "mul.i 92,#8,92\n"
         "add.i #0,92,96\n"
@@ -111,6 +120,8 @@ TEST_F(ParseArrays, CanReadFromRealArrayAtAnyIndex)
         "end.\n");
 
     const std::string expected =
+        "jump.i #L0\n"
+        "L0:\n"
         "sub.i #1,#1,88\n"
         "mul.i 88,#8,88\n"
         "add.i #0,88,92\n"

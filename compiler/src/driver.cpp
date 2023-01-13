@@ -3,11 +3,14 @@
 #include "parser.h"
 #include "scanner.h"
 
-Driver::Driver(std::ostream& output, std::istream& input) : output_stream(output), input_stream(input), scanner(*this), parser(scanner, *this) {}
+Driver::Driver(std::ostream& output, std::istream& input)
+    : output_stream(&output), input_stream(input), global_output(&output), scanner(*this), parser(scanner, *this)
+{
+}
 
 int Driver::parse()
 {
-    scanner.switch_streams(&input_stream, &output_stream);
+    scanner.switch_streams(&input_stream, output_stream);
     scanner.set_debug(trace_scanning);
     parser.set_debug_level(trace_parsing);
     return parser();
@@ -32,14 +35,14 @@ void Driver::error(const std::string& message)
     throw std::runtime_error(message);
 }
 
-void Driver::gencode(const std::string& code) { output_stream << code << std::endl; }
+void Driver::gencode(const std::string& code) { *output_stream << code << std::endl; }
 
 void Driver::gencode(const std::string& code, int op1, bool generate_instr_postfix)
 {
     const auto& symbol1 = symbol_table.symbols[op1];
 
     geninstr(code, symbol1.var_type.type, generate_instr_postfix);
-    output_stream << ' ' << symbol1.as_operand() << std::endl;
+    *output_stream << ' ' << symbol1.as_operand() << std::endl;
 }
 
 void Driver::gencode(const std::string& code, int op1, int op2, bool generate_instr_postfix)
@@ -48,7 +51,7 @@ void Driver::gencode(const std::string& code, int op1, int op2, bool generate_in
     const auto& symbol2 = symbol_table.symbols[op2];
 
     geninstr(code, symbol1.var_type.type, generate_instr_postfix);
-    output_stream << ' ' << symbol1.as_operand() << ',' << symbol2.as_operand() << std::endl;
+    *output_stream << ' ' << symbol1.as_operand() << ',' << symbol2.as_operand() << std::endl;
 }
 
 void Driver::gencode(const std::string& code, int op1, int op2, int op3, bool generate_instr_postfix)
@@ -58,14 +61,31 @@ void Driver::gencode(const std::string& code, int op1, int op2, int op3, bool ge
     const auto& symbol3 = symbol_table.symbols[op3];
 
     geninstr(code, symbol1.var_type.type, generate_instr_postfix);
-    output_stream << ' ' << symbol1.as_operand() << ',' << symbol2.as_operand() << ',' << symbol3.as_operand() << std::endl;
+    *output_stream << ' ' << symbol1.as_operand() << ',' << symbol2.as_operand() << ',' << symbol3.as_operand() << std::endl;
 }
 
-void Driver::enter_function_mode() { in_function_mode = true; }
+void Driver::enter_function_mode(int function_entry_idx)
+{
+    subprogram_symbol_index = function_entry_idx;
+    local_output.str(std::string());  // Clear local output
+    output_stream = &local_output;
+}
 
-void Driver::leave_function_mode() { in_function_mode = false; }
+void Driver::leave_function_mode()
+{
+    gencode("leave");
+    gencode("return");
 
-void Driver::genlabel(int label) { output_stream << symbol_table.symbols[label].id << ':' << std::endl; }
+    subprogram_symbol_index = -1;
+    output_stream = global_output;
+
+    const int local_var_size_const = symbol_table.add_constant(0);
+    gencode("enter", local_var_size_const);
+
+    *output_stream << local_output.str();
+}
+
+void Driver::genlabel(int label) { *output_stream << symbol_table.symbols[label].id << ':' << std::endl; }
 
 int Driver::convert_if_needed(int argument, VariableType target_type)
 {
@@ -201,9 +221,9 @@ int Driver::gencode_relop(const std::string& relop_code, int op1, int op2)
 
 void Driver::geninstr(const std::string& code, VariableType instr_type, bool generate_instr_postfix)
 {
-    output_stream << code;
+    *output_stream << code;
     if (generate_instr_postfix)
     {
-        output_stream << instr_postfix(instr_type);
+        *output_stream << instr_postfix(instr_type);
     }
 }

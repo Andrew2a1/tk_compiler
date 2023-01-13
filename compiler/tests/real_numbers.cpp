@@ -17,13 +17,16 @@ TEST_F(ParseRealNumbersTest, SupportsRealVariableDeclaration)
         "begin\n"
         "end.\n");
 
-    const std::string expected = "exit\n";
+    const std::string expected =
+        "jump.i #L0\n"
+        "L0:\n"
+        "exit\n";
 
     std::ostringstream output;
     Driver driver(output, input);
 
     ASSERT_EQ(driver.parse(), 0);
-    ASSERT_EQ(driver.symbol_table.symbols.size(), 2);
+    ASSERT_EQ(driver.symbol_table.symbols.size(), 3);
     ASSERT_EQ(driver.symbol_table.symbols.front().var_type.type, VariableType::Real);
     ASSERT_EQ(output.str(), expected);
 }
@@ -38,6 +41,8 @@ TEST_F(ParseRealNumbersTest, GeneratesAssignmentCode)
         "end.\n");
 
     const std::string expected =
+        "jump.i #L0\n"
+        "L0:\n"
         "mov.r #1,0\n"
         "exit\n";
 
@@ -58,6 +63,8 @@ TEST_F(ParseRealNumbersTest, ConvertsRealConstantToIntOnAssignment)
         "end.\n");
 
     const std::string expected =
+        "jump.i #L0\n"
+        "L0:\n"
         "realtoint.r #1.5,4\n"
         "mov.i 4,0\n"
         "exit\n";
@@ -80,6 +87,8 @@ TEST_F(ParseRealNumbersTest, ConvertsIntConstantToRealOnAssignment)
         "end.\n");
 
     const std::string expected =
+        "jump.i #L0\n"
+        "L0:\n"
         "inttoreal.i 8,12\n"
         "mov.r 12,0\n"
         "exit\n";
@@ -101,6 +110,8 @@ TEST_F(ParseRealNumbersTest, GeneratesValidCodeForUnaryMinusOperator)
         "end.\n");
 
     const std::string expected =
+        "jump.i #L0\n"
+        "L0:\n"
         "sub.r #0,8,16\n"
         "mov.r 16,0\n"
         "exit\n";
@@ -123,6 +134,8 @@ TEST_F(ParseRealNumbersTest, GeneratesConversionsForSubtraction)
         "end.\n");
 
     const std::string expected =
+        "jump.i #L0\n"
+        "L0:\n"
         "inttoreal.i 8,12\n"
         "sub.r #12.5,12,20\n"
         "mov.r 20,0\n"
@@ -145,6 +158,8 @@ TEST_F(ParseRealNumbersTest, GeneratesConversionsForMultiplicationAndAddition)
         "end.\n");
 
     const std::string expected =
+        "jump.i #L0\n"
+        "L0:\n"
         "inttoreal.i 4,8\n"
         "mul.r #12.5,8,16\n"
         "add.r #2.5,16,24\n"
@@ -174,6 +189,8 @@ TEST_F(ParseRealNumbersTest, FullySupportsRealNumbers)
         "end.\n");
 
     const std::string expected =
+        "jump.i #L0\n"
+        "L0:\n"
         "read.i 0\n"
         "read.i 4\n"
         "mov.r #1.5,16\n"
