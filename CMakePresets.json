@@ -60,5 +60,13 @@
                 "CMAKE_BUILD_TYPE": "Release"
             }
         }
+    ],
+    "buildPresets": [
+        {
+            "name": "GCC [Debug]",
+            "configurePreset": "gcc_debug",
+            "configuration": "Debug",
+            "jobs": 12
+        }
     ]
 }

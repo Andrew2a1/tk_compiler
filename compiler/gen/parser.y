@@ -84,6 +84,7 @@
 %nterm <int> variable
 %nterm <int> expression
 %nterm <int> statement
+%nterm <int> procedure_statement
 %nterm <int> simple_expression
 %nterm <int> term
 %nterm <int> factor
@@ -245,12 +246,18 @@ statement:
         drv.genlabel(end_label);
     }
     | compound_statement { $$ = -1; }
-    | procedure_statement { $$ = -1; }
+    | procedure_statement {
+        $$ = $1;
+     }
     ;
 
 procedure_statement:
-    id
-    | id LPAREN expression_list RPAREN
+    id {
+        drv.genfunc_call($1, std::vector<int>{});
+    }
+    | id LPAREN expression_list RPAREN {
+        drv.genfunc_call($1, $3);
+    }
 
 empty: %empty { $$ = std::vector<int>{}; }
 
@@ -376,6 +383,9 @@ factor:
     variable
     | id LPAREN expression_list RPAREN {
         $$ = drv.genfunc_call($1, $3);
+        if($$ < 0) {
+            throw std::runtime_error("Function '" + drv.symbol_table.symbols[$1].id + "' does not return value");
+        }
     }
     | INT_NUMBER {
         $$ = drv.symbol_table.add_constant($1);

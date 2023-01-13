@@ -131,20 +131,26 @@ int Driver::genfunc_call(int function_idx, const std::vector<int>& arguments)
         gencode("push", arg_address);
     }
 
+    int result_var = -1;
+    int pushed_size = arguments.size() * 4;
+
     const auto& function_info = symbol_table.symbols[function_idx].function_info;
-    if (!function_info.return_type.has_value())
+    if (function_info.return_type.has_value())
     {
-        error("Function: " + symbol_table.symbols[function_idx].id + " does not return anything.");
+        result_var = symbol_table.add_tmp(function_info.return_type.value().type);
+        const int result_address = symbol_table.add_constant(symbol_table.symbols[result_var].offset);
+        gencode("push", result_address);
+        pushed_size += 4;
     }
 
-    const int result_var = symbol_table.add_tmp(function_info.return_type.value().type);
-    const int result_address = symbol_table.add_constant(symbol_table.symbols[result_var].offset);
-    gencode("push", result_address);
-
-    const int pushed_size = arguments.size() * 4 + 4;
     const int pushed_size_const = symbol_table.add_constant(pushed_size);
     gencode("call", function_idx);
-    gencode("incsp", pushed_size_const);
+
+    if (pushed_size > 0)
+    {
+        gencode("incsp", pushed_size_const);
+    }
+
     return result_var;
 }
 

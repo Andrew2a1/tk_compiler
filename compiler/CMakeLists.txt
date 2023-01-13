@@ -28,6 +28,7 @@ set(TESTS
     tests/while_loop.cpp
     tests/arrays.cpp
     tests/functions.cpp
+    tests/procedures.cpp
 )
 
 set(FLEX_BISON_FILES

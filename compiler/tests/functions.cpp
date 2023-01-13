@@ -165,26 +165,33 @@ TEST_F(ParseFunctions, CallingFunctionWithInvalidNumberOfArgumentsShouldFail)
     ASSERT_THROW(driver.parse(), std::runtime_error);
 }
 
-// TEST_F(ParseFunctions, GeneratesValidProcedureCall)
-// {
-//     std::istringstream input(
-//         "program example(input, output);\n"
-//         "var x: integer;\n"
-//         "procedure f;\n"
-//         "begin\n"
-//         "end;\n"
-//         "\n"
-//         "begin\n"
-//         "f\n"
-//         "end.\n");
+TEST_F(ParseFunctions, UseResultOfFunction)
+{
+    std::istringstream input(
+        "program example(input, output);\n"
+        "var x: integer;\n"
+        "function f(a: integer; b: integer): integer;\n"
+        "begin\n"
+        "end;\n"
+        "\n"
+        "begin\n"
+        "x:=1 + f(x, x)*2"
+        "end.\n");
 
-//     const std::string expected =
-//         "call.i #f\n"
-//         "exit\n";
+    const std::string expected =
+        "push.i #0\n"
+        "push.i #0\n"
+        "push.i #4\n"
+        "call.i #f\n"
+        "incsp.i #12\n"
+        "mul.i 4,#2,8\n"
+        "add.i #1,8,12\n"
+        "mov.i 12,0\n"
+        "exit\n";
 
-//     std::ostringstream output;
-//     Driver driver(output, input);
+    std::ostringstream output;
+    Driver driver(output, input);
 
-//     ASSERT_EQ(driver.parse(), 0);
-//     ASSERT_EQ(output.str(), expected);
-// }
+    ASSERT_EQ(driver.parse(), 0);
+    ASSERT_EQ(output.str(), expected);
+}
