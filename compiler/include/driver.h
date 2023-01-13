@@ -4,6 +4,7 @@
 #include <fstream>
 #include <map>
 #include <string>
+#include <vector>
 
 #include "parser.h"
 #include "scanner.h"
@@ -23,8 +24,10 @@ private:
     yy::parser parser;
 
     std::string loc_filename;
+
     bool trace_scanning = false;
     bool trace_parsing = false;
+    bool in_function_mode = false;
 
 public:
     Driver(std::ostream& output, std::istream& input);
@@ -34,13 +37,18 @@ public:
     void set_location_filename(const std::string& filename);
     void error(const std::string& message);
 
+    void enter_function_mode();
+    void leave_function_mode();
+
     void gencode(const std::string& code);
     void gencode(const std::string& code, int op1, bool generate_instr_postfix = true);
     void gencode(const std::string& code, int op1, int op2, bool generate_instr_postfix = true);
     void gencode(const std::string& code, int op1, int op2, int op3, bool generate_instr_postfix = true);
 
     void genlabel(int label);
+    int genfunc_call(int function_idx, const std::vector<int>& arguments);
 
+    int convert_if_needed(int argument, VariableType target_type);
     int gencode_conversions(const std::string& code, int op1, int op2);
     int gencode_relop(const std::string& relop_code, int op1, int op2);
 

@@ -16,6 +16,7 @@
 %code requires {
     #include "symbol_table.h"
     #include <stdexcept>
+    #include <algorithm>
 
     class Scanner;
     class Driver;
@@ -80,16 +81,18 @@
 %token <double> REAL_NUMBER
 
 %nterm <int> id
-%nterm <std::vector<std::string>> identifier_list
-%nterm <Type> type
-%nterm <VariableType> standard_type
 %nterm <int> variable
 %nterm <int> expression
 %nterm <int> statement
-%nterm <std::vector<int>> expression_list
 %nterm <int> simple_expression
 %nterm <int> term
 %nterm <int> factor
+%nterm <Type> type
+%nterm <VariableType> standard_type
+%nterm <std::vector<std::string>> identifier_list
+%nterm <std::vector<int>> expression_list
+%nterm <std::vector<std::pair<std::string, Type>>> parameter_list
+%nterm <std::vector<std::pair<std::string, Type>>> arguments
 %nterm <std::vector<int>> empty
 
 %%
@@ -132,22 +135,45 @@ subprogram_declarations:
     ;
 
 subprogram_declaration:
-    subprogram_head declarations compound_statement
+    subprogram_head {
+        drv.enter_function_mode();
+    }
+    declarations
+    compound_statement {
+        drv.leave_function_mode();
+    }
     ;
 
 subprogram_head:
-    FUNCTION ID arguments COLON standard_type SEMICOL
-    | PROCEDURE ID arguments SEMICOL
+    FUNCTION ID {
+        drv.symbol_table.create_function($2);
+    }
+    arguments COLON standard_type SEMICOL {
+        auto &function_entry = drv.symbol_table.symbols.back();
+        function_entry.function_info = FunctionInfo{$4, Type{$6}};
+    }
+    | PROCEDURE ID {
+        drv.symbol_table.create_function($2);
+    }
+    arguments SEMICOL {
+        auto &procedure_entry = drv.symbol_table.symbols.back();
+        procedure_entry.function_info = FunctionInfo{$4, std::nullopt};
+    }
     ;
 
 arguments:
-    LPAREN parameter_list RPAREN
-    | %empty
+    LPAREN parameter_list RPAREN { $$ = $2; }
+    | %empty { $$ = {}; }
     ;
 
 parameter_list:
-    identifier_list COLON type
-    | parameter_list SEMICOL identifier_list COLON type
+    identifier_list COLON type {
+        std::transform(($1).cbegin(), ($1).cend(), std::back_inserter($$), [&](const std::string &name){ return std::make_pair(name, $3); });
+    }
+    | parameter_list SEMICOL identifier_list COLON type {
+        $$ = $1;
+        std::transform(($3).cbegin(), ($3).cend(), std::back_inserter($$), [&](const std::string &name){ return std::make_pair(name, $5); });
+    }
     ;
 
 compound_statement:
@@ -166,18 +192,8 @@ statement_list:
 
 statement:
     variable ASSIGN expression  {
-        const auto var_type = drv.symbol_table.symbols[$1].var_type.type;
-        const auto expr_type = drv.symbol_table.symbols[$3].var_type.type;
-        int dest_var = $3;
-
-        if(var_type != expr_type) {
-            dest_var = drv.symbol_table.add_tmp(var_type);
-            if(expr_type == VariableType::Integer && var_type == VariableType::Real) {
-                drv.gencode("inttoreal", $3, dest_var);
-            } else if (expr_type == VariableType::Real && var_type == VariableType::Integer) {
-                drv.gencode("realtoint", $3, dest_var);
-            }
-        }
+        const auto &var_type = drv.symbol_table.symbols[$1].var_type.type;
+        const int dest_var = drv.convert_if_needed($3, var_type);
         drv.gencode("mov", dest_var, $1);
     }
     | READ LPAREN identifier_list RPAREN {
@@ -358,7 +374,9 @@ term:
 
 factor:
     variable
-    | id LPAREN expression_list RPAREN
+    | id LPAREN expression_list RPAREN {
+        $$ = drv.genfunc_call($1, $3);
+    }
     | INT_NUMBER {
         $$ = drv.symbol_table.add_constant($1);
     }
@@ -385,7 +403,7 @@ factor:
     ;
 %%
 
-void yy::parser::error (const location_type& location, const std::string& message)
+void yy::parser::error(const location_type& location, const std::string& message)
 {
     std::cerr << "Error: " << location << ": " << message << '\n';
 }

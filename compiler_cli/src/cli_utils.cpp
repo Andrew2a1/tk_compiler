@@ -36,9 +36,10 @@ std::string var_type_to_str(const Type &var_type)
     return ss.str();
 }
 
-std::string symbol_type_to_str(SymbolType symbol_type)
+std::string symbol_type_str(const SymbolTableEntry &entry)
 {
-    switch (symbol_type)
+    std::stringstream ss;
+    switch (entry.symbol_type)
     {
         case SymbolType::Constant:
             return "const";
@@ -46,6 +47,18 @@ std::string symbol_type_to_str(SymbolType symbol_type)
             return "var";
         case SymbolType::Label:
             return "label";
+        case SymbolType::Function:
+            ss << "function(";
+            for (const auto &[arg_name, arg_type] : entry.function_info.arguments)
+            {
+                ss << arg_name << ": " << var_type_to_str(arg_type) << ", ";
+            }
+            ss << ')';
+            if (entry.function_info.return_type.has_value())
+            {
+                ss << ": " << var_type_to_str(entry.function_info.return_type.value());
+            }
+            return ss.str();
     }
     return "UNKNOWN";
 }
@@ -67,8 +80,10 @@ void print_symbol_table(const SymbolTable &table)
             value_str = (symbol.symbol_type == SymbolType::Constant) ? std::to_string(symbol.value) : "-";
         }
 
+        const std::string var_type_str = (symbol.symbol_type != SymbolType::Function) ? var_type_to_str(symbol.var_type) : "-";
         const std::string offset_str = (symbol.symbol_type == SymbolType::Variable) ? std::to_string(symbol.offset) : "-";
-        symtable.add_row({symbol.id, symbol_type_to_str(symbol.symbol_type), var_type_to_str(symbol.var_type), value_str, offset_str});
+
+        symtable.add_row({symbol.id, symbol_type_str(symbol), var_type_str, value_str, offset_str});
     }
 
     std::cout << symtable << std::endl;

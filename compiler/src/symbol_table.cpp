@@ -20,9 +20,15 @@ void SymbolTable::create_variables(const std::vector<std::string> &variable_ids,
 {
     for (const auto &id : variable_ids)
     {
-        symbols.push_back({id, type, SymbolType::Variable, -1, global_offset});
+        symbols.push_back({id, type, SymbolType::Variable, -1, global_offset, {}});
         global_offset += type_size(type);
     }
+}
+
+int SymbolTable::create_function(const std::string &function_name)
+{
+    symbols.push_back({function_name, Type{VariableType::Integer}, SymbolType::Function, -1, -1, {}});
+    return symbols.size() - 1;
 }
 
 int SymbolTable::type_size(const Type &var_type) const
@@ -54,20 +60,20 @@ int SymbolTable::type_size(VariableType var_type) const
 
 int SymbolTable::add_constant(int value, VariableType var_type)
 {
-    symbols.push_back({"-", Type{var_type}, SymbolType::Constant, static_cast<double>(value), -1});
+    symbols.push_back({"-", Type{var_type}, SymbolType::Constant, static_cast<double>(value), -1, {}});
     return symbols.size() - 1;
 }
 
 int SymbolTable::add_constant(double value, VariableType var_type)
 {
-    symbols.push_back({"-", Type{var_type}, SymbolType::Constant, value, -1});
+    symbols.push_back({"-", Type{var_type}, SymbolType::Constant, value, -1, {}});
     return symbols.size() - 1;
 }
 
 int SymbolTable::add_tmp(VariableType var_type, bool is_ref)
 {
     const Type type{var_type, StandardTypeInfo{is_ref}};
-    symbols.push_back({"$t" + std::to_string(tmp_var_count), type, SymbolType::Variable, -1, global_offset});
+    symbols.push_back({"$t" + std::to_string(tmp_var_count), type, SymbolType::Variable, -1, global_offset, {}});
 
     global_offset += type_size(type);
     tmp_var_count += 1;
@@ -77,7 +83,7 @@ int SymbolTable::add_tmp(VariableType var_type, bool is_ref)
 
 int SymbolTable::add_label()
 {
-    symbols.push_back({"L" + std::to_string(label_count), Type{VariableType::Integer}, SymbolType::Label, -1, -1});
+    symbols.push_back({"L" + std::to_string(label_count), Type{VariableType::Integer}, SymbolType::Label, -1, -1, {}});
     label_count += 1;
     return symbols.size() - 1;
 }

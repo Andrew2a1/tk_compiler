@@ -8,7 +8,10 @@ std::string SymbolTableEntry::as_operand() const
     switch (symbol_type)
     {
         case SymbolType::Constant:
-            ss << '#' << value;
+            if (var_type.type == VariableType::Integer)
+                ss << '#' << static_cast<int>(value);
+            else
+                ss << '#' << value;
             return ss.str();
         case SymbolType::Variable:
             if (!var_type.is_array() && std::get<StandardTypeInfo>(var_type.type_info).is_reference)
@@ -18,6 +21,7 @@ std::string SymbolTableEntry::as_operand() const
             ss << offset;
             return ss.str();
         case SymbolType::Label:
+        case SymbolType::Function:
             return "#" + id;
     }
     return "";

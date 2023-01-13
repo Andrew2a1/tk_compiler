@@ -4,5 +4,6 @@ enum class SymbolType
 {
     Variable,
     Constant,
-    Label
+    Label,
+    Function
 };

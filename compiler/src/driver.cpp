@@ -61,7 +61,92 @@ void Driver::gencode(const std::string& code, int op1, int op2, int op3, bool ge
     output_stream << ' ' << symbol1.as_operand() << ',' << symbol2.as_operand() << ',' << symbol3.as_operand() << std::endl;
 }
 
+void Driver::enter_function_mode() { in_function_mode = true; }
+
+void Driver::leave_function_mode() { in_function_mode = false; }
+
 void Driver::genlabel(int label) { output_stream << symbol_table.symbols[label].id << ':' << std::endl; }
+
+int Driver::convert_if_needed(int argument, VariableType target_type)
+{
+    if (symbol_table.symbols[argument].var_type.type == VariableType::Integer && target_type == VariableType::Real)
+    {
+        const int conversion_tmp = symbol_table.add_tmp(VariableType::Real);
+        gencode("inttoreal", argument, conversion_tmp);
+        return conversion_tmp;
+    }
+    else if (symbol_table.symbols[argument].var_type.type == VariableType::Real && target_type == VariableType::Integer)
+    {
+        const int conversion_tmp = symbol_table.add_tmp(VariableType::Integer);
+        gencode("realtoint", argument, conversion_tmp);
+        return conversion_tmp;
+    }
+    return argument;
+}
+
+int Driver::genfunc_call(int function_idx, const std::vector<int>& arguments)
+{
+    {
+        const auto& function_entry = symbol_table.symbols[function_idx];
+        const unsigned expected_arg_count = function_entry.function_info.arguments.size();
+        if (function_entry.symbol_type != SymbolType::Function)
+        {
+            error("Identifier: '" + function_entry.id + "' is not a function.");
+        }
+        else if (expected_arg_count != arguments.size())
+        {
+            error("Invalid number of arguments: '" + std::to_string(arguments.size()) + "' (expected: '" + std::to_string(expected_arg_count) + "')");
+        }
+    }
+
+    for (unsigned i = 0; i < arguments.size(); ++i)
+    {
+        const auto arg = symbol_table.symbols[arguments[i]];
+        const auto function_arg_type = symbol_table.symbols[function_idx].function_info.arguments[i].second;
+        int arg_address;
+
+        if (function_arg_type.is_array() && arg.var_type.is_array())
+        {
+            arg_address = symbol_table.add_constant(arg.offset);
+        }
+        else if (!function_arg_type.is_array() && !arg.var_type.is_array())
+        {
+            if (arg.symbol_type == SymbolType::Constant)
+            {
+                const int arg_const = symbol_table.add_constant(arg.value, function_arg_type.type);  // Ensure constant is of right type
+                const int tmp_var = symbol_table.add_tmp(function_arg_type.type);
+                gencode("mov", arg_const, tmp_var);
+                arg_address = symbol_table.add_constant(symbol_table.symbols[tmp_var].offset);
+            }
+            else
+            {
+                const int converted_arg = convert_if_needed(arguments[i], function_arg_type.type);
+                arg_address = symbol_table.add_constant(symbol_table.symbols[converted_arg].offset);
+            }
+        }
+        else
+        {
+            error("Invalid parameter type at position: " + std::to_string(i));
+        }
+        gencode("push", arg_address);
+    }
+
+    const auto& function_info = symbol_table.symbols[function_idx].function_info;
+    if (!function_info.return_type.has_value())
+    {
+        error("Function: " + symbol_table.symbols[function_idx].id + " does not return anything.");
+    }
+
+    const int result_var = symbol_table.add_tmp(function_info.return_type.value().type);
+    const int result_address = symbol_table.add_constant(symbol_table.symbols[result_var].offset);
+    gencode("push", result_address);
+
+    const int pushed_size = arguments.size() * 4 + 4;
+    const int pushed_size_const = symbol_table.add_constant(pushed_size);
+    gencode("call", function_idx);
+    gencode("incsp", pushed_size_const);
+    return result_var;
+}
 
 int Driver::gencode_conversions(const std::string& code, int op1, int op2)
 {

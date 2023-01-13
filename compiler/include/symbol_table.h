@@ -18,6 +18,7 @@ private:
 
 public:
     void create_variables(const std::vector<std::string> &variable_ids, const Type &type);
+    int create_function(const std::string &function_name);
 
     int add_constant(int value, VariableType var_type = VariableType::Integer);
     int add_constant(double value, VariableType var_type = VariableType::Real);
