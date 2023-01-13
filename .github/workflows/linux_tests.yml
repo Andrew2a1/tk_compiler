@@ -37,12 +37,22 @@ jobs:
       - name: Setup Conan
         run: python3 -m pip install conan
 
-      - name: Configure build
-        run: cmake --preset gcc_debug -B "build"
+      - name: Configure build (Release)
+        run: cmake --preset gcc_release -B "build_release"
 
-      - name: Build all
-        run: cmake --build "build" -j "$(nproc)"
+      - name: Build all (Release)
+        run: cmake --build "build_release" -j "$(nproc)"
 
-      - name: Run tests
-        working-directory: build
+      - name: Run tests (Release)
+        working-directory: build_release
+        run: ctest --verbose -j "$(nproc)"
+
+      - name: Configure build (Debug)
+        run: cmake --preset gcc_debug -B "build_debug"
+
+      - name: Build all (Debug)
+        run: cmake --build "build_debug" -j "$(nproc)"
+
+      - name: Run tests (Debug)
+        working-directory: build_debug
         run: ctest --verbose -j "$(nproc)"
