@@ -134,3 +134,28 @@ TEST_F(ParseArrays, CanReadFromRealArrayAtAnyIndex)
     ASSERT_EQ(driver.parse(), 0);
     ASSERT_EQ(output.str(), expected);
 }
+
+TEST_F(ParseArrays, CanReadIntoTheTable)
+{
+    std::istringstream input(
+        "program example(input, output);\n"
+        "var x: array[1..10] of integer;\n"
+        "begin\n"
+        "read(x[1])\n"
+        "end.\n");
+
+    const std::string expected =
+        "jump.i #L0\n"
+        "L0:\n"
+        "sub.i #1,#1,40\n"
+        "mul.i 40,#4,40\n"
+        "add.i #0,40,44\n"
+        "read.i *44\n"
+        "exit\n";
+
+    std::ostringstream output;
+    Driver driver(output, input);
+
+    ASSERT_EQ(driver.parse(), 0);
+    ASSERT_EQ(output.str(), expected);
+}

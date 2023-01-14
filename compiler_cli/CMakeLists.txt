@@ -18,7 +18,7 @@ set_common_properties(${PROJECT_NAME})
 
 # Acceptance tests
 
-#file(GLOB TEST_FILES "tests/*.pas")
+file(GLOB TEST_FILES "tests/*.pas")
 foreach(TEST_FILE ${TEST_FILES})
     get_filename_component(PURE_NAME ${TEST_FILE} NAME_WE)
     get_filename_component(TEST_DIR ${TEST_FILE} DIRECTORY)

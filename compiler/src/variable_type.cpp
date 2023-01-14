@@ -14,7 +14,7 @@ std::string instr_postfix(VariableType variable_type)
 
 bool Type::operator==(const Type &other) const
 {
-    if (type != other.type || is_reference != other.is_reference)
+    if (type != other.type)
     {
         return false;
     }
@@ -30,5 +30,5 @@ bool Type::operator==(const Type &other) const
         return false;
     }
 
-    return true;
+    return is_reference == other.is_reference;
 }

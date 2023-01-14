@@ -204,20 +204,16 @@ statement_list:
 statement:
     variable ASSIGN expression  {
         const auto &var_entry = *($1);
-        const auto &expr_entry = *($3);
+        auto &expr_entry = *($3);
 
         const auto &var_type = var_entry.var_type.type;
         const auto &dest_var = drv.convert_if_needed(expr_entry, var_type);
         drv.gencode("mov", dest_var, var_entry);
     }
-    | READ LPAREN identifier_list RPAREN {
-        for(const auto &id: $3)
+    | READ LPAREN expression_list RPAREN {
+        for(const auto &expr: $3)
         {
-            const auto &symbol_entry = drv.find_symbol(id);
-            if(symbol_entry == nullptr) {
-                drv.error("Variable: '" + id + "' has not been declarated.");
-            }
-            drv.gencode("read", *symbol_entry);
+            drv.gencode("read", *expr);
         }
     }
     | WRITE LPAREN expression_list RPAREN {

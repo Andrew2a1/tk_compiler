@@ -66,7 +66,7 @@ int main(int argc, char *argv[])
     }
 
     std::cout << std::endl << "Symbol table: " << std::endl;
-    print_symbol_table(driver.symbol_table());
+    print_symbol_table(driver.global_symbol_table);
 
     std::locale::global(std::locale("C"));
     return parse_result;

@@ -75,6 +75,23 @@ void Driver::gencode(const std::string& code, const SymbolTableEntry& op1, const
     *output_stream << ' ' << op1.as_operand() << ',' << op2.as_operand() << ',' << op3.as_operand() << std::endl;
 }
 
+void Driver::gencode_push(SymbolTableEntry& op)
+{
+    assert(op.symbol_type == SymbolType::Variable);
+    if (op.var_type.is_reference)
+    {
+        op.var_type.is_reference = false;
+        gencode("push", op);
+        op.var_type.is_reference = true;
+    }
+    else
+    {
+        auto& offset_entry = symbol_table().add_constant(op.offset);
+        offset_entry.is_local = op.is_local;
+        gencode("push", offset_entry);
+    }
+}
+
 void Driver::enter_function_mode(const SymbolTableEntry& function_entry_idx)
 {
     is_in_local_mode = true;
@@ -135,7 +152,7 @@ void Driver::leave_function_mode()
 
 void Driver::genlabel(const SymbolTableEntry& label) { *output_stream << label.id << ':' << std::endl; }
 
-const SymbolTableEntry& Driver::convert_if_needed(const SymbolTableEntry& argument, VariableType target_type)
+SymbolTableEntry& Driver::convert_if_needed(SymbolTableEntry& argument, VariableType target_type)
 {
     if (argument.var_type.type == VariableType::Integer && target_type == VariableType::Real)
     {
@@ -154,11 +171,17 @@ const SymbolTableEntry& Driver::convert_if_needed(const SymbolTableEntry& argume
 
 SymbolTableEntry* Driver::genfunc_call(const SymbolTableEntry& function_entry, const std::vector<SymbolTableEntry*>& arguments)
 {
+    const SymbolTableEntry* valid_entry = &function_entry;
     {
         const unsigned expected_arg_count = function_entry.function_info.arguments.size();
         if (function_entry.symbol_type != SymbolType::Function)
         {
-            error("Identifier: '" + function_entry.id + "' is not a function.");
+            const auto* found_valid_entry = global_symbol_table.find_symbol(function_entry.id);
+            if (found_valid_entry == nullptr)
+            {
+                error("Identifier: '" + function_entry.id + "' is not a function.");
+            }
+            valid_entry = found_valid_entry;
         }
         else if (expected_arg_count != arguments.size())
         {
@@ -167,10 +190,10 @@ SymbolTableEntry* Driver::genfunc_call(const SymbolTableEntry& function_entry, c
     }
 
     int pos = 0;
-    auto function_arg_iter = function_entry.function_info.arguments.begin();
+    auto function_arg_iter = (*valid_entry).function_info.arguments.begin();
     for (auto arguments_iter = arguments.begin(); arguments_iter != arguments.end(); ++arguments_iter, ++function_arg_iter, ++pos)
     {
-        const auto& arg = *(*arguments_iter);
+        auto& arg = *(*arguments_iter);
         const auto& function_arg_type = (*function_arg_iter).second;
 
         if (function_arg_type.is_array() && arg.var_type.is_array())
@@ -179,21 +202,21 @@ SymbolTableEntry* Driver::genfunc_call(const SymbolTableEntry& function_entry, c
             {
                 error("Invalid parameter. Array types are different at pos: " + std::to_string(pos));
             }
-            gencode("push", symbol_table().add_constant(symbol_table().get_symbol_offset(arg)));
+            gencode_push(arg);
         }
         else if (!function_arg_type.is_array() && !arg.var_type.is_array())
         {
             if (arg.symbol_type == SymbolType::Constant)
             {
                 const auto& arg_const = symbol_table().add_constant(arg.value, function_arg_type.type);  // Ensure constant is of right type
-                const auto& tmp_var = symbol_table().add_tmp(function_arg_type.type);
+                auto& tmp_var = symbol_table().add_tmp(function_arg_type.type);
                 gencode("mov", arg_const, tmp_var);
-                gencode("push", symbol_table().add_constant(symbol_table().get_symbol_offset(tmp_var)));
+                gencode_push(tmp_var);
             }
             else
             {
-                const auto& converted_arg = convert_if_needed(arg, function_arg_type.type);
-                gencode("push", symbol_table().add_constant(symbol_table().get_symbol_offset(converted_arg)));
+                auto& converted_arg = convert_if_needed(arg, function_arg_type.type);
+                gencode_push(converted_arg);
             }
         }
         else
@@ -205,17 +228,16 @@ SymbolTableEntry* Driver::genfunc_call(const SymbolTableEntry& function_entry, c
     SymbolTableEntry* result_var = nullptr;
     int pushed_size = arguments.size() * 4;
 
-    const auto& function_info = function_entry.function_info;
+    const auto& function_info = (*valid_entry).function_info;
     if (function_info.return_type.has_value())
     {
         result_var = &symbol_table().add_tmp(function_info.return_type.value().type);
-        const auto& result_address = symbol_table().add_constant(symbol_table().get_symbol_offset(*result_var));
-        gencode("push", result_address);
+        gencode_push(*result_var);
         pushed_size += 4;
     }
 
     const auto& pushed_size_const = symbol_table().add_constant(pushed_size);
-    gencode("call", function_entry);
+    gencode("call", (*valid_entry));
 
     if (pushed_size > 0)
     {

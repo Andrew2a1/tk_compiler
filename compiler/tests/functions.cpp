@@ -185,3 +185,123 @@ TEST_F(ParseFunctions, CanAccessGlobalVariableFromFunction)
     ASSERT_EQ(driver.parse(), 0);
     ASSERT_EQ(output.str(), expected);
 }
+
+TEST_F(ParseFunctions, CanParseRecursiveFunction)
+{
+    std::istringstream input(
+        "program example(input, output);\n"
+        "var x, y: integer;\n"
+        "var g,h:real;\n"
+        "\n"
+        "function gcd(a, b: integer):integer;\n"
+        "begin\n"
+        "  if b=0 then\n"
+        "    gcd:=a\n"
+        "  else\n"
+        "    gcd:=gcd(b, a mod b)\n"
+        "end;\n"
+        "\n"
+        "\n"
+        "begin\n"
+        "  read(x, y);\n"
+        "  write(gcd(x, y))\n"
+        "end.\n");
+
+    const std::string expected =
+        "jump.i #L0\n"
+        "gcd:\n"
+        "enter.i #12\n"
+        "je.i *BP+12,#0,#L1\n"
+        "mov.i #0,BP-4\n"
+        "jump.i #L2\n"
+        "L1:\n"
+        "mov.i #1,BP-4\n"
+        "L2:\n"
+        "je.i BP-4,#0,#L3\n"
+        "mov.i *BP+16,*BP+8\n"
+        "jump.i #L4\n"
+        "L3:\n"
+        "mod.i *BP+16,*BP+12,BP-8\n"
+        "push.i BP+12\n"
+        "push.i #BP-8\n"
+        "push.i #BP-12\n"
+        "call.i #gcd\n"
+        "incsp.i #12\n"
+        "mov.i BP-12,*BP+8\n"
+        "L4:\n"
+        "leave\n"
+        "return\n"
+        "L0:\n"
+        "read.i 0\n"
+        "read.i 4\n"
+        "push.i #0\n"
+        "push.i #4\n"
+        "push.i #24\n"
+        "call.i #gcd\n"
+        "incsp.i #12\n"
+        "write.i 24\n"
+        "exit\n";
+
+    std::ostringstream output;
+    Driver driver(output, input);
+
+    ASSERT_EQ(driver.parse(), 0);
+    ASSERT_EQ(output.str(), expected);
+}
+
+TEST_F(ParseFunctions, CanAccessManyFunctionsCallingEachOther)
+{
+    std::istringstream input(
+        "program sort(input,output);\n"
+        "var j,i,o:integer;\n"
+        "var p :array [1..10] of integer;\n"
+        "var b:integer;\n"
+        "\n"
+        "procedure czytajtab(a: array[1..10] of integer);\n"
+        "begin\n"
+        "a[1]:=10\n"
+        "end;\n"
+        "\n"
+        "procedure bubblesort(a:array[1..10] of integer);\n"
+        "begin\n"
+        "czytajtab(a)\n"
+        "end;\n"
+        "\n"
+        "begin\n"
+        "czytajtab(p);\n"
+        "p[3]:=10\n"
+        "end.\n");
+
+    const std::string expected =
+        "jump.i #L0\n"
+        "czytajtab:\n"
+        "enter.i #8\n"
+        "sub.i #1,#1,BP-4\n"
+        "mul.i BP-4,#4,BP-4\n"
+        "add.i BP+8,BP-4,BP-8\n"
+        "mov.i #10,*BP-8\n"
+        "leave\n"
+        "return\n"
+        "bubblesort:\n"
+        "enter.i #0\n"
+        "push.i BP+8\n"
+        "call.i #czytajtab\n"
+        "incsp.i #4\n"
+        "leave\n"
+        "return\n"
+        "L0:\n"
+        "push.i #12\n"
+        "call.i #czytajtab\n"
+        "incsp.i #4\n"
+        "sub.i #3,#1,56\n"
+        "mul.i 56,#4,56\n"
+        "add.i #12,56,60\n"
+        "mov.i #10,*60\n"
+        "exit\n";
+
+    std::ostringstream output;
+    Driver driver(output, input);
+
+    ASSERT_EQ(driver.parse(), 0);
+    ASSERT_EQ(output.str(), expected);
+}

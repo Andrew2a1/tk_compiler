@@ -15,9 +15,9 @@ class Driver
 {
 public:
     yy::location location;
+    SymbolTable global_symbol_table;
 
 private:
-    SymbolTable global_symbol_table;
     SymbolTable local_symbol_table;
 
     Scanner scanner;
@@ -56,11 +56,13 @@ public:
     void gencode(const std::string& code, const SymbolTableEntry& op1, const SymbolTableEntry& op2, const SymbolTableEntry& op3,
                  bool generate_instr_postfix = true);
 
+    void gencode_push(SymbolTableEntry& op);
+
     void genlabel(const SymbolTableEntry& label);
     SymbolTableEntry* genfunc_call(const SymbolTableEntry& function_entry, const std::vector<SymbolTableEntry*>& arguments);
     SymbolTableEntry& genarray_get(SymbolTableEntry& function_entry, const SymbolTableEntry& expr);
 
-    const SymbolTableEntry& convert_if_needed(const SymbolTableEntry& argument, VariableType target_type);
+    SymbolTableEntry& convert_if_needed(SymbolTableEntry& argument, VariableType target_type);
     SymbolTableEntry& gencode_conversions(const std::string& code, const SymbolTableEntry& op1, const SymbolTableEntry& op2);
     SymbolTableEntry& gencode_relop(const std::string& relop_code, const SymbolTableEntry& op1, const SymbolTableEntry& op2);
 
