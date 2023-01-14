@@ -14,6 +14,7 @@ struct SymbolTableEntry
     double value;
     int offset;
     FunctionInfo function_info;
+    bool is_local = false;
 
     std::string as_operand() const;
 };

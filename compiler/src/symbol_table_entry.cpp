@@ -1,5 +1,6 @@
 #include "symbol_table_entry.h"
 
+#include <cmath>
 #include <sstream>
 
 std::string SymbolTableEntry::as_operand() const
@@ -14,11 +15,15 @@ std::string SymbolTableEntry::as_operand() const
                 ss << '#' << value;
             return ss.str();
         case SymbolType::Variable:
-            if (!var_type.is_array() && std::get<StandardTypeInfo>(var_type.type_info).is_reference)
+            if (var_type.is_reference)
             {
                 ss << '*';
             }
-            ss << offset;
+            if (is_local)
+            {
+                ss << "BP" << (offset < 0 ? '+' : '-');
+            }
+            ss << std::abs(offset);
             return ss.str();
         case SymbolType::Label:
         case SymbolType::Function:

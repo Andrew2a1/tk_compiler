@@ -24,5 +24,5 @@ TEST_F(ParserParseExpressionsTest, CreatesTemporaryVariablesInSymbolTable)
 
     Driver driver(std::cout, input);
     driver.parse();
-    ASSERT_EQ(driver.symbol_table.symbols.size(), 8);
+    ASSERT_EQ(driver.symbol_table().symbols.size(), 8);
 }

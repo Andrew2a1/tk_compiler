@@ -14,18 +14,20 @@
 class Driver
 {
 public:
-    SymbolTable symbol_table;
+    SymbolTable global_symbol_table;
     yy::location location;
 
 private:
-    std::ostream* output_stream;
-    std::istream& input_stream;
-
-    std::ostringstream local_output;
-    std::ostream* global_output;
+    SymbolTable local_symbol_table;
 
     Scanner scanner;
     yy::parser parser;
+
+    std::ostream* output_stream;
+    std::istream& input_stream;
+
+    std::ostream& global_output;
+    std::ostringstream local_output;
 
     std::string loc_filename;
 
@@ -35,8 +37,10 @@ private:
     int subprogram_symbol_index = -1;
 
 public:
-    Driver(std::ostream& output, std::istream& input);
     int parse();
+    Driver(std::ostream& output, std::istream& input);
+
+    SymbolTable& symbol_table();
 
     void set_debug(bool trace_scanning = false, bool trace_parsing = false);
     void set_location_filename(const std::string& filename);

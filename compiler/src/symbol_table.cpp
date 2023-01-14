@@ -16,33 +16,45 @@ int SymbolTable::find_symbol(const std::string &id) const
     return iter - symbols.cbegin();
 }
 
+SymbolTable::SymbolTable(bool is_local) : is_local(is_local) {}
+
 void SymbolTable::create_variables(const std::vector<std::string> &variable_ids, const Type &type)
 {
     for (const auto &id : variable_ids)
     {
-        symbols.push_back({id, type, SymbolType::Variable, -1, global_offset, {}});
-        global_offset += type_size(type);
+        create_variable(id, type, global_offset);
     }
+}
+
+int SymbolTable::create_variable(const std::string &variable_name, const Type &type, int offset)
+{
+    assert(find_symbol(variable_name) < 0);
+    symbols.push_back({variable_name, type, SymbolType::Variable, -1, offset, {}, is_local});
+    global_offset += type_size(type);
+    return symbols.size() - 1;
 }
 
 int SymbolTable::create_function(const std::string &function_name)
 {
+    assert(is_local == false);
     symbols.push_back({function_name, Type{VariableType::Integer}, SymbolType::Function, -1, -1, {}});
     return symbols.size() - 1;
 }
 
 int SymbolTable::type_size(const Type &var_type) const
 {
-    const int base_size = type_size(var_type.type);
-    if (var_type.is_array())
-    {
-        const auto &array_info = std::get<ArrayTypeInfo>(var_type.type_info);
-        return base_size * (array_info.end_index - array_info.start_index + 1);
-    }
-    if (std::get<StandardTypeInfo>(var_type.type_info).is_reference)
+    if (var_type.is_reference)
     {
         return type_size(VariableType::Integer);
     }
+
+    const int base_size = type_size(var_type.type);
+    if (var_type.is_array())
+    {
+        const auto &array_info = var_type.type_info.value();
+        return base_size * (array_info.end_index - array_info.start_index + 1);
+    }
+
     return base_size;
 }
 
@@ -56,6 +68,21 @@ int SymbolTable::type_size(VariableType var_type) const
             return 8;
     }
     return -1;
+}
+
+int SymbolTable::get_symbol_offset(int symbol) const { return is_local ? -symbols[symbol].offset : symbols[symbol].offset; }
+
+int SymbolTable::get_total_var_size() const
+{
+    int total_size = 0;
+    for (const auto &entry : symbols)
+    {
+        if (entry.symbol_type == SymbolType::Variable && entry.offset > 0)
+        {
+            total_size += type_size(entry.var_type);
+        }
+    }
+    return total_size;
 }
 
 int SymbolTable::add_constant(int value, VariableType var_type)
@@ -72,8 +99,8 @@ int SymbolTable::add_constant(double value, VariableType var_type)
 
 int SymbolTable::add_tmp(VariableType var_type, bool is_ref)
 {
-    const Type type{var_type, StandardTypeInfo{is_ref}};
-    symbols.push_back({"$t" + std::to_string(tmp_var_count), type, SymbolType::Variable, -1, global_offset, {}});
+    const Type type{var_type, is_ref};
+    symbols.push_back({"$t" + std::to_string(tmp_var_count), type, SymbolType::Variable, -1, global_offset, {}, is_local});
 
     global_offset += type_size(type);
     tmp_var_count += 1;
@@ -83,6 +110,7 @@ int SymbolTable::add_tmp(VariableType var_type, bool is_ref)
 
 int SymbolTable::add_label()
 {
+    assert(is_local == false);
     symbols.push_back({"L" + std::to_string(label_count), Type{VariableType::Integer}, SymbolType::Label, -1, -1, {}});
     label_count += 1;
     return symbols.size() - 1;
@@ -91,7 +119,6 @@ int SymbolTable::add_label()
 int SymbolTable::to_ref(int symbol, VariableType var_type)
 {
     assert(symbols[symbol].symbol_type == SymbolType::Variable);
-    assert(symbols[symbol].var_type.is_array() == false);
-    symbols[symbol].var_type = Type{var_type, StandardTypeInfo{/* is_reference = */ true}};
+    symbols[symbol].var_type = Type{var_type, true};
     return symbol;
 }

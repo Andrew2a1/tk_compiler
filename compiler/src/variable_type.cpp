@@ -11,3 +11,24 @@ std::string instr_postfix(VariableType variable_type)
     }
     return "";
 }
+
+bool Type::operator==(const Type &other) const
+{
+    if (type != other.type || is_reference != other.is_reference)
+    {
+        return false;
+    }
+
+    if (is_array() && other.is_array())
+    {
+        const auto &self_type_info = type_info.value();
+        const auto &other_type_info = other.type_info.value();
+        return (self_type_info.start_index == other_type_info.start_index) && (self_type_info.end_index == other_type_info.end_index);
+    }
+    else if (is_array() || other.is_array())
+    {
+        return false;
+    }
+
+    return true;
+}

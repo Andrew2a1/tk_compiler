@@ -1,7 +1,7 @@
 #pragma once
 
+#include <optional>
 #include <string>
-#include <variant>
 
 enum class VariableType
 {
@@ -10,11 +10,6 @@ enum class VariableType
 };
 
 std::string instr_postfix(VariableType variable_type);
-
-struct StandardTypeInfo
-{
-    bool is_reference = false;
-};
 
 struct ArrayTypeInfo
 {
@@ -25,6 +20,10 @@ struct ArrayTypeInfo
 struct Type
 {
     VariableType type;
-    std::variant<StandardTypeInfo, ArrayTypeInfo> type_info = StandardTypeInfo{};
-    bool is_array() const { return std::holds_alternative<ArrayTypeInfo>(type_info); }
+    bool is_reference = false;
+
+    std::optional<ArrayTypeInfo> type_info = std::nullopt;
+
+    bool is_array() const { return type_info.has_value(); }
+    bool operator==(const Type &other) const;
 };

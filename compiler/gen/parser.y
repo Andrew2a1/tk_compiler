@@ -103,7 +103,7 @@
 program:
     PROGRAM ID LPAREN identifier_list RPAREN SEMICOL
     declarations {
-        const int main_entrypoint = drv.symbol_table.add_label();
+        const int main_entrypoint = drv.global_symbol_table.add_label();
         drv.gencode("jump", main_entrypoint);
         $7 = main_entrypoint;
     }
@@ -121,7 +121,7 @@ identifier_list:
     ;
 
 declarations:
-    declarations VAR identifier_list COLON type SEMICOL { drv.symbol_table.create_variables($3, $5); }
+    declarations VAR identifier_list COLON type SEMICOL { drv.symbol_table().create_variables($3, $5); }
     | %empty { $$ = -1; }
     ;
 
@@ -130,7 +130,7 @@ type:
     | ARRAY LSBRACKET INT_NUMBER DOT DOT INT_NUMBER RSBRACKET OF standard_type {
         const int start_index = $3;
         const int end_index = $6;
-        $$ = Type{$9, ArrayTypeInfo{start_index, end_index}};
+        $$ = Type{$9, /*is_ref = */ false, ArrayTypeInfo{start_index, end_index}};
     }
     ;
 
@@ -157,13 +157,13 @@ subprogram_declaration:
 
 subprogram_head:
     FUNCTION ID arguments COLON standard_type SEMICOL {
-        $$ = drv.symbol_table.create_function($2);
-        auto &function_entry = drv.symbol_table.symbols.back();
+        $$ = drv.symbol_table().create_function($2);
+        auto &function_entry = drv.symbol_table().symbols.back();
         function_entry.function_info = FunctionInfo{$3, Type{$5}};
     }
     | PROCEDURE ID arguments SEMICOL {
-        $$ = drv.symbol_table.create_function($2);
-        auto &procedure_entry = drv.symbol_table.symbols.back();
+        $$ = drv.symbol_table().create_function($2);
+        auto &procedure_entry = drv.symbol_table().symbols.back();
         procedure_entry.function_info = FunctionInfo{$3, std::nullopt};
     }
     ;
@@ -199,14 +199,14 @@ statement_list:
 
 statement:
     variable ASSIGN expression  {
-        const auto &var_type = drv.symbol_table.symbols[$1].var_type.type;
+        const auto &var_type = drv.symbol_table().symbols[$1].var_type.type;
         const int dest_var = drv.convert_if_needed($3, var_type);
         drv.gencode("mov", dest_var, $1);
     }
     | READ LPAREN identifier_list RPAREN {
         for(const auto &id: $3)
         {
-            drv.gencode("read", drv.symbol_table.find_symbol(id));
+            drv.gencode("read", drv.symbol_table().find_symbol(id));
         }
     }
     | WRITE LPAREN expression_list RPAREN {
@@ -216,13 +216,13 @@ statement:
         }
     }
     | IF expression {
-        const int else_label = drv.symbol_table.add_label();
-        const int zero_const = drv.symbol_table.add_constant(0);
+        const int else_label = drv.global_symbol_table.add_label();
+        const int zero_const = drv.symbol_table().add_constant(0);
         drv.gencode("je", $2, zero_const, else_label);
         $2 = else_label;
     }
     THEN statement {
-        const int endif_label = drv.symbol_table.add_label();
+        const int endif_label = drv.global_symbol_table.add_label();
         const int else_label = $2;
         drv.gencode("jump", endif_label);
         drv.genlabel(else_label);
@@ -233,8 +233,8 @@ statement:
         drv.genlabel(endif_label);
     }
     | WHILE empty {
-        const int start_label = drv.symbol_table.add_label();
-        const int end_label = drv.symbol_table.add_label();
+        const int start_label = drv.global_symbol_table.add_label();
+        const int end_label = drv.global_symbol_table.add_label();
         drv.genlabel(start_label);
         ($2).push_back(start_label);
         ($2).push_back(end_label);
@@ -242,7 +242,7 @@ statement:
     expression DO {
         const int expression = $4;
         const int end_label = ($2).back();
-        const int zero_const = drv.symbol_table.add_constant(0);
+        const int zero_const = drv.symbol_table().add_constant(0);
         drv.gencode("je", expression, zero_const, end_label);
     }
     statement {
@@ -272,32 +272,44 @@ variable:
         $$ = $1;
     }
     | id LSBRACKET expression RSBRACKET {
-        const auto expression_type = drv.symbol_table.symbols[$3].var_type.type;
+        const auto expression_type = drv.symbol_table().symbols[$3].var_type.type;
         int expr = $3;
 
         if(expression_type == VariableType::Real) {
-            const int conversion_var = drv.symbol_table.add_tmp(VariableType::Integer);
+            const int conversion_var = drv.symbol_table().add_tmp(VariableType::Integer);
             drv.gencode("realtoint", expr, conversion_var);
             expr = conversion_var;
         }
 
-        if(!drv.symbol_table.symbols[$1].var_type.is_array()) {
-            drv.error("Id: " + drv.symbol_table.symbols[$1].id + " is not an array");
+        if(!drv.symbol_table().symbols[$1].var_type.is_array()) {
+            drv.error("Id: " + drv.symbol_table().symbols[$1].id + " is not an array");
         }
 
-        const auto array_var_type = drv.symbol_table.symbols[$1].var_type;
-        const auto &array_info = std::get<ArrayTypeInfo>(array_var_type.type_info);
+        const auto array_var_type = drv.symbol_table().symbols[$1].var_type;
+        const auto &array_info = array_var_type.type_info.value();
 
-        const int address_tmp = drv.symbol_table.add_tmp(VariableType::Integer);
-        const int output_ref_var = drv.symbol_table.add_tmp(VariableType::Integer);
-        const int start_index_const = drv.symbol_table.add_constant(array_info.start_index);
-        const int type_size_const = drv.symbol_table.add_constant(drv.symbol_table.type_size(array_var_type.type));
-        const int var_offset_const = drv.symbol_table.add_constant(drv.symbol_table.symbols[$1].offset);
+        const int address_tmp = drv.symbol_table().add_tmp(VariableType::Integer);
+        const int output_ref_var = drv.symbol_table().add_tmp(VariableType::Integer);
+        const int start_index_const = drv.symbol_table().add_constant(array_info.start_index);
+        const int type_size_const = drv.symbol_table().add_constant(drv.symbol_table().type_size(array_var_type.type));
+
+        const bool is_reference_type = drv.symbol_table().symbols[$1].var_type.is_reference;
+        int var_offset;
+
+        if(is_reference_type) {
+            drv.symbol_table().symbols[$1].var_type.is_reference = false;
+            var_offset = $1;
+        }
+        else {
+            var_offset = drv.symbol_table().add_constant(drv.symbol_table().get_symbol_offset($1));
+        }
 
         drv.gencode("sub", expr, start_index_const, address_tmp);
         drv.gencode("mul", address_tmp, type_size_const, address_tmp);
-        drv.gencode("add", var_offset_const, address_tmp, output_ref_var);
-        drv.symbol_table.to_ref(output_ref_var, array_var_type.type);
+        drv.gencode("add", var_offset, address_tmp, output_ref_var);
+
+        drv.symbol_table().to_ref(output_ref_var, array_var_type.type);
+        drv.symbol_table().symbols[$1].var_type.is_reference = is_reference_type;
 
         $$ = output_ref_var;
     }
@@ -305,7 +317,7 @@ variable:
 
 id:
     ID {
-        $$ = drv.symbol_table.find_symbol($1);
+        $$ = drv.symbol_table().find_symbol($1);
         if($$ < 0) {
             drv.error("Variable '" + $1 + "' has not been declarated");
         }
@@ -346,9 +358,9 @@ expression:
 simple_expression:
     term
     | MINUS term {
-        const auto term_type = drv.symbol_table.symbols[$2].var_type.type;
-        const int zero_const = drv.symbol_table.add_constant(0, term_type);
-        const int result_var = drv.symbol_table.add_tmp(term_type);
+        const auto term_type = drv.symbol_table().symbols[$2].var_type.type;
+        const int zero_const = drv.symbol_table().add_constant(0, term_type);
+        const int result_var = drv.symbol_table().add_tmp(term_type);
         drv.gencode("sub", zero_const, $2, result_var);
         $$ = result_var;
     }
@@ -390,29 +402,29 @@ factor:
     | id LPAREN expression_list RPAREN {
         $$ = drv.genfunc_call($1, $3);
         if($$ < 0) {
-            throw std::runtime_error("Function '" + drv.symbol_table.symbols[$1].id + "' does not return value");
+            throw std::runtime_error("Function '" + drv.symbol_table().symbols[$1].id + "' does not return value");
         }
     }
     | INT_NUMBER {
-        $$ = drv.symbol_table.add_constant($1);
+        $$ = drv.symbol_table().add_constant($1);
     }
     | REAL_NUMBER {
-        $$ = drv.symbol_table.add_constant($1);
+        $$ = drv.symbol_table().add_constant($1);
     }
     | LPAREN expression RPAREN {
         $$ = $2;
     }
     | NOT factor {
-        const auto factor_type = drv.symbol_table.symbols[$2].var_type.type;
+        const auto factor_type = drv.symbol_table().symbols[$2].var_type.type;
         int factor = $2;
 
         if(factor_type == VariableType::Real) {
-            const int conversion_var = drv.symbol_table.add_tmp(VariableType::Integer);
+            const int conversion_var = drv.symbol_table().add_tmp(VariableType::Integer);
             drv.gencode("realtoint", $2, conversion_var);
             factor = conversion_var;
         }
 
-        const int result_var = drv.symbol_table.add_tmp(VariableType::Integer);
+        const int result_var = drv.symbol_table().add_tmp(VariableType::Integer);
         drv.gencode("not.i", factor, result_var, false);
         $$ = result_var;
     }
