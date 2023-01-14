@@ -16,7 +16,7 @@ int SymbolTable::find_symbol(const std::string &id) const
     return iter - symbols.cbegin();
 }
 
-SymbolTable::SymbolTable(bool is_local) : is_local(is_local) {}
+SymbolTable::SymbolTable(int label_count, bool is_local) : label_count(label_count), is_local(is_local) {}
 
 void SymbolTable::create_variables(const std::vector<std::string> &variable_ids, const Type &type)
 {
@@ -110,7 +110,6 @@ int SymbolTable::add_tmp(VariableType var_type, bool is_ref)
 
 int SymbolTable::add_label()
 {
-    assert(is_local == false);
     symbols.push_back({"L" + std::to_string(label_count), Type{VariableType::Integer}, SymbolType::Label, -1, -1, {}});
     label_count += 1;
     return symbols.size() - 1;

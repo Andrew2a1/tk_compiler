@@ -10,15 +10,15 @@ class SymbolTable
 {
 public:
     std::vector<SymbolTableEntry> symbols;
-    bool is_local = false;
-
-private:
-    int global_offset = 0;
-    int tmp_var_count = 0;
     int label_count = 0;
 
+private:
+    bool is_local = false;
+    int global_offset = 0;
+    int tmp_var_count = 0;
+
 public:
-    explicit SymbolTable(bool is_local = false);
+    explicit SymbolTable(int label_count = 0, bool is_local = false);
     void create_variables(const std::vector<std::string> &variable_ids, const Type &type);
 
     int create_variable(const std::string &variable_name, const Type &type, int offset);

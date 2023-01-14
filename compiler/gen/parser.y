@@ -103,7 +103,7 @@
 program:
     PROGRAM ID LPAREN identifier_list RPAREN SEMICOL
     declarations {
-        const int main_entrypoint = drv.global_symbol_table.add_label();
+        const int main_entrypoint = drv.symbol_table().add_label();
         drv.gencode("jump", main_entrypoint);
         $7 = main_entrypoint;
     }
@@ -216,13 +216,13 @@ statement:
         }
     }
     | IF expression {
-        const int else_label = drv.global_symbol_table.add_label();
+        const int else_label = drv.symbol_table().add_label();
         const int zero_const = drv.symbol_table().add_constant(0);
         drv.gencode("je", $2, zero_const, else_label);
         $2 = else_label;
     }
     THEN statement {
-        const int endif_label = drv.global_symbol_table.add_label();
+        const int endif_label = drv.symbol_table().add_label();
         const int else_label = $2;
         drv.gencode("jump", endif_label);
         drv.genlabel(else_label);
@@ -233,8 +233,8 @@ statement:
         drv.genlabel(endif_label);
     }
     | WHILE empty {
-        const int start_label = drv.global_symbol_table.add_label();
-        const int end_label = drv.global_symbol_table.add_label();
+        const int start_label = drv.symbol_table().add_label();
+        const int end_label = drv.symbol_table().add_label();
         drv.genlabel(start_label);
         ($2).push_back(start_label);
         ($2).push_back(end_label);

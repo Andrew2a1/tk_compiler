@@ -74,7 +74,7 @@ void Driver::enter_function_mode(int function_entry_idx)
 {
     subprogram_symbol_index = function_entry_idx;
     local_output.str(std::string());  // Clear local output
-    local_symbol_table = SymbolTable{true};
+    local_symbol_table = SymbolTable{global_symbol_table.label_count, true};
 
     const auto& function_entry = global_symbol_table.symbols[function_entry_idx].function_info;
     int offset = -4 * (function_entry.arguments.size() + (function_entry.return_type.has_value() ? 1 : 0) + 1);
@@ -122,10 +122,11 @@ void Driver::leave_function_mode()
     const int local_var_size_const = symbol_table().add_constant(local_symbol_table.get_total_var_size());
     gencode("enter", local_var_size_const);
 
+    global_symbol_table.label_count = local_symbol_table.label_count;
     *output_stream << local_output.str();
 }
 
-void Driver::genlabel(int label) { *output_stream << global_symbol_table.symbols[label].id << ':' << std::endl; }
+void Driver::genlabel(int label) { *output_stream << symbol_table().symbols[label].id << ':' << std::endl; }
 
 int Driver::convert_if_needed(int argument, VariableType target_type)
 {
@@ -247,8 +248,8 @@ int Driver::gencode_conversions(const std::string& code, int op1, int op2)
 
 int Driver::gencode_relop(const std::string& relop_code, int op1, int op2)
 {
-    const int true_label = global_symbol_table.add_label();
-    const int end_label = global_symbol_table.add_label();
+    const int true_label = symbol_table().add_label();
+    const int end_label = symbol_table().add_label();
     const int result_var = symbol_table().add_tmp(VariableType::Integer);
     const int zero_const = symbol_table().add_constant(0);
     const int one_const = symbol_table().add_constant(1);

@@ -14,10 +14,10 @@
 class Driver
 {
 public:
-    SymbolTable global_symbol_table;
     yy::location location;
 
 private:
+    SymbolTable global_symbol_table;
     SymbolTable local_symbol_table;
 
     Scanner scanner;
