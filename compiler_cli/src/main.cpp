@@ -41,7 +41,7 @@ int main(int argc, char *argv[])
 
     if (out.fail())
     {
-        std::cerr << "Cannot open file " << input_filename << " for writing" << std::endl;
+        std::cerr << "Cannot open file " << output_filename << " for writing" << std::endl;
         return -1;
     }
 
