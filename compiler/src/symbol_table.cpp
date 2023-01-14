@@ -6,14 +6,14 @@
 #include <sstream>
 #include <stdexcept>
 
-int SymbolTable::find_symbol(const std::string &id) const
+SymbolTableEntry *SymbolTable::find_symbol(const std::string &id)
 {
-    const auto iter = std::find_if(symbols.cbegin(), symbols.cend(), [&id](const SymbolTableEntry &entry) { return entry.id == id; });
+    auto iter = std::find_if(symbols.begin(), symbols.end(), [&id](const SymbolTableEntry &entry) { return entry.id == id; });
     if (iter == symbols.cend())
     {
-        return -1;
+        return nullptr;
     }
-    return iter - symbols.cbegin();
+    return &(*iter);
 }
 
 SymbolTable::SymbolTable(int label_count, bool is_local) : label_count(label_count), is_local(is_local) {}
@@ -26,19 +26,19 @@ void SymbolTable::create_variables(const std::vector<std::string> &variable_ids,
     }
 }
 
-int SymbolTable::create_variable(const std::string &variable_name, const Type &type, int offset)
+SymbolTableEntry &SymbolTable::create_variable(const std::string &variable_name, const Type &type, int offset)
 {
-    assert(find_symbol(variable_name) < 0);
+    assert(find_symbol(variable_name) == nullptr);
     symbols.push_back({variable_name, type, SymbolType::Variable, -1, offset, {}, is_local});
     global_offset += type_size(type);
-    return symbols.size() - 1;
+    return symbols.back();
 }
 
-int SymbolTable::create_function(const std::string &function_name)
+SymbolTableEntry &SymbolTable::create_function(const std::string &function_name)
 {
     assert(is_local == false);
     symbols.push_back({function_name, Type{VariableType::Integer}, SymbolType::Function, -1, -1, {}});
-    return symbols.size() - 1;
+    return symbols.back();
 }
 
 int SymbolTable::type_size(const Type &var_type) const
@@ -70,7 +70,7 @@ int SymbolTable::type_size(VariableType var_type) const
     return -1;
 }
 
-int SymbolTable::get_symbol_offset(int symbol) const { return is_local ? -symbols[symbol].offset : symbols[symbol].offset; }
+int SymbolTable::get_symbol_offset(const SymbolTableEntry &symbol) const { return is_local ? -symbol.offset : symbol.offset; }
 
 int SymbolTable::get_total_var_size() const
 {
@@ -85,19 +85,19 @@ int SymbolTable::get_total_var_size() const
     return total_size;
 }
 
-int SymbolTable::add_constant(int value, VariableType var_type)
+SymbolTableEntry &SymbolTable::add_constant(int value, VariableType var_type)
 {
     symbols.push_back({"-", Type{var_type}, SymbolType::Constant, static_cast<double>(value), -1, {}});
-    return symbols.size() - 1;
+    return symbols.back();
 }
 
-int SymbolTable::add_constant(double value, VariableType var_type)
+SymbolTableEntry &SymbolTable::add_constant(double value, VariableType var_type)
 {
     symbols.push_back({"-", Type{var_type}, SymbolType::Constant, value, -1, {}});
-    return symbols.size() - 1;
+    return symbols.back();
 }
 
-int SymbolTable::add_tmp(VariableType var_type, bool is_ref)
+SymbolTableEntry &SymbolTable::add_tmp(VariableType var_type, bool is_ref)
 {
     const Type type{var_type, is_ref};
     symbols.push_back({"$t" + std::to_string(tmp_var_count), type, SymbolType::Variable, -1, global_offset, {}, is_local});
@@ -105,19 +105,20 @@ int SymbolTable::add_tmp(VariableType var_type, bool is_ref)
     global_offset += type_size(type);
     tmp_var_count += 1;
 
-    return symbols.size() - 1;
+    return symbols.back();
 }
 
-int SymbolTable::add_label()
+SymbolTableEntry &SymbolTable::add_label()
 {
     symbols.push_back({"L" + std::to_string(label_count), Type{VariableType::Integer}, SymbolType::Label, -1, -1, {}});
     label_count += 1;
-    return symbols.size() - 1;
+    return symbols.back();
 }
 
-int SymbolTable::to_ref(int symbol, VariableType var_type)
+SymbolTableEntry &SymbolTable::to_ref(SymbolTableEntry &symbol, VariableType new_type)
 {
-    assert(symbols[symbol].symbol_type == SymbolType::Variable);
-    symbols[symbol].var_type = Type{var_type, true};
+    assert(symbol.symbol_type == SymbolType::Variable);
+    symbol.var_type.is_reference = true;
+    symbol.var_type.type = new_type;
     return symbol;
 }

@@ -153,3 +153,35 @@ TEST_F(ParseFunctions, GeneratesValidIfStatementsInsideProcedure)
     ASSERT_EQ(driver.parse(), 0);
     ASSERT_EQ(output.str(), expected);
 }
+
+TEST_F(ParseFunctions, CanAccessGlobalVariableFromFunction)
+{
+    std::istringstream input(
+        "program example(input, output);\n"
+        "var x: integer;\n"
+        "procedure f;\n"
+        "begin\n"
+        "write(x)\n"
+        "end; \n"
+        "\n"
+        "begin\n"
+        "f\n"
+        "end.\n");
+
+    const std::string expected =
+        "jump.i #L0\n"
+        "f:\n"
+        "enter.i #0\n"
+        "write.i 0\n"
+        "leave\n"
+        "return\n"
+        "L0:\n"
+        "call.i #f\n"
+        "exit\n";
+
+    std::ostringstream output;
+    Driver driver(output, input);
+
+    ASSERT_EQ(driver.parse(), 0);
+    ASSERT_EQ(output.str(), expected);
+}
