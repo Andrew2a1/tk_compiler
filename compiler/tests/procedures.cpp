@@ -190,6 +190,42 @@ TEST_F(ParseProcedures, LocalVariablesShouldHaveValidSizes)
     ASSERT_EQ(output.str(), expected);
 }
 
+TEST_F(ParseProcedures, CanUseConstantsInsideProcedures)
+{
+    std::istringstream input(
+        "program example(input, output);\n"
+        "procedure f(a: integer);\n"
+        "begin\n"
+        "write(2*a + 1)\n"
+        "end;\n"
+        "\n"
+        "begin\n"
+        "f(1)\n"
+        "end.\n");
+
+    const std::string expected =
+        "jump.i #L0\n"
+        "f:\n"
+        "enter.i #8\n"
+        "mul.i #2,*BP+8,BP-4\n"
+        "add.i BP-4,#1,BP-8\n"
+        "write.i BP-8\n"
+        "leave\n"
+        "return\n"
+        "L0:\n"
+        "mov.i #1,0\n"
+        "push.i #0\n"
+        "call.i #f\n"
+        "incsp.i #4\n"
+        "exit\n";
+
+    std::ostringstream output;
+    Driver driver(output, input);
+
+    ASSERT_EQ(driver.parse(), 0);
+    ASSERT_EQ(output.str(), expected);
+}
+
 TEST_F(ParseProcedures, ProcedureCanCallOtherProceduresAndFunctions)
 {
     std::istringstream input(
