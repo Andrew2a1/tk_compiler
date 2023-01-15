@@ -92,7 +92,7 @@ void Driver::gencode_push(const SymbolTableEntry& op)
     }
 }
 
-void Driver::enter_function_mode(const SymbolTableEntry& function_entry)
+void Driver::enter_local_mode(const SymbolTableEntry& function_entry)
 {
     is_in_local_mode = true;
     local_output.str(std::string());
@@ -104,7 +104,7 @@ void Driver::enter_function_mode(const SymbolTableEntry& function_entry)
     output_stream = &local_output;
 }
 
-void Driver::leave_function_mode()
+void Driver::leave_local_mode()
 {
     gencode("leave");
     gencode("return");

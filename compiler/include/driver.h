@@ -45,8 +45,8 @@ public:
     void set_location_filename(const std::string& filename);
 
     void error(const std::string& message);
-    void enter_function_mode(const SymbolTableEntry& function_entry);
-    void leave_function_mode();
+    void enter_local_mode(const SymbolTableEntry& function_entry);
+    void leave_local_mode();
 
     void gencode(const std::string& code);
     void gencode(const std::string& code, const SymbolTableEntry& op1, bool generate_instr_postfix = true);

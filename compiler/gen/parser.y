@@ -151,11 +151,11 @@ subprogram_declaration:
     subprogram_head {
         const auto &function_entry = *($1);
         drv.genlabel(function_entry);
-        drv.enter_function_mode(function_entry);
+        drv.enter_local_mode(function_entry);
     }
     declarations
     compound_statement {
-        drv.leave_function_mode();
+        drv.leave_local_mode();
     }
     ;
 
