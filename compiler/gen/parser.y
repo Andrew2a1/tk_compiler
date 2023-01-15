@@ -206,6 +206,10 @@ statement:
         const auto &var_entry = *($1);
         auto &expr_entry = *($3);
 
+        if(var_entry.symbol_type != SymbolType::Variable) {
+            drv.error(var_entry.id + " is not valid target for assignment.");
+        }
+
         const auto &var_type = var_entry.var_type.type;
         const auto &dest_var = drv.convert_if_needed(expr_entry, var_type);
         drv.gencode("mov", dest_var, var_entry);
@@ -267,12 +271,12 @@ statement:
 
 procedure_statement:
     id {
-        drv.genfunc_call(*($1), {});
+        $$ = drv.genfunc_call(*($1), {});
     }
     | id LPAREN expression_list RPAREN {
         const auto &id_entry = *($1);
         const auto &expr_entry = $3;
-        drv.genfunc_call(id_entry, expr_entry);
+        $$ = drv.genfunc_call(id_entry, expr_entry);
     }
 
 empty: %empty { $$ = {}; }

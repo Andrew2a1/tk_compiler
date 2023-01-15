@@ -173,7 +173,6 @@ SymbolTableEntry* Driver::genfunc_call(const SymbolTableEntry& function_entry, c
 {
     const SymbolTableEntry* valid_entry = &function_entry;
     {
-        const unsigned expected_arg_count = function_entry.function_info.arguments.size();
         if (function_entry.symbol_type != SymbolType::Function)
         {
             const auto* found_valid_entry = global_symbol_table.find_symbol(function_entry.id);
@@ -183,7 +182,9 @@ SymbolTableEntry* Driver::genfunc_call(const SymbolTableEntry& function_entry, c
             }
             valid_entry = found_valid_entry;
         }
-        else if (expected_arg_count != arguments.size())
+
+        const unsigned expected_arg_count = valid_entry->function_info.arguments.size();
+        if (expected_arg_count != arguments.size())
         {
             error("Invalid number of arguments: '" + std::to_string(arguments.size()) + "' (expected: '" + std::to_string(expected_arg_count) + "')");
         }

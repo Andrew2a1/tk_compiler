@@ -159,3 +159,58 @@ TEST_F(ParseArrays, CanReadIntoTheTable)
     ASSERT_EQ(driver.parse(), 0);
     ASSERT_EQ(output.str(), expected);
 }
+
+TEST_F(ParseArrays, IndexShouldBeConvertedToInteger)
+{
+    std::istringstream input(
+        "program example(input, output);\n"
+        "var x: array[1..10] of integer;\n"
+        "begin\n"
+        "write(x[-1.0])\n"
+        "end.\n");
+
+    const std::string expected =
+        "jump.i #L0\n"
+        "L0:\n"
+        "sub.r #0,#1,40\n"
+        "realtoint.r 40,48\n"
+        "sub.i 48,#1,52\n"
+        "mul.i 52,#4,52\n"
+        "add.i #0,52,56\n"
+        "write.i *56\n"
+        "exit\n";
+
+    std::ostringstream output;
+    Driver driver(output, input);
+
+    ASSERT_EQ(driver.parse(), 0);
+    ASSERT_EQ(output.str(), expected);
+}
+
+TEST_F(ParseArrays, CanUseArrayValueAsIndex)
+{
+    std::istringstream input(
+        "program example(input, output);\n"
+        "var x, y: array[1..10] of integer;\n"
+        "begin\n"
+        "write(x[y[5]])\n"
+        "end.\n");
+
+    const std::string expected =
+        "jump.i #L0\n"
+        "L0:\n"
+        "sub.i #5,#1,80\n"
+        "mul.i 80,#4,80\n"
+        "add.i #40,80,84\n"
+        "sub.i *84,#1,88\n"
+        "mul.i 88,#4,88\n"
+        "add.i #0,88,92\n"
+        "write.i *92\n"
+        "exit\n";
+
+    std::ostringstream output;
+    Driver driver(output, input);
+
+    ASSERT_EQ(driver.parse(), 0);
+    ASSERT_EQ(output.str(), expected);
+}
