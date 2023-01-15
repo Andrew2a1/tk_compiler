@@ -21,7 +21,7 @@ public:
     explicit SymbolTable(int label_count = 0, bool is_local = false);
     void create_variables(const std::vector<std::string> &variable_ids, const Type &type);
 
-    SymbolTableEntry &create_variable(const std::string &variable_name, const Type &type, int offset);
+    SymbolTableEntry &create_variable(const std::string &variable_name, const Type &type);
     SymbolTableEntry &create_function(const std::string &function_name);
 
     SymbolTableEntry &add_constant(int value, VariableType var_type = VariableType::Integer);

@@ -149,6 +149,47 @@ TEST_F(ParseProcedures, ReturningValueFromProcedureShouldFail)
     ASSERT_THROW(driver.parse(), std::runtime_error);
 }
 
+TEST_F(ParseProcedures, LocalVariablesShouldHaveValidSizes)
+{
+    std::istringstream input(
+        "program example(input, output);\n"
+        "var x: integer;\n"
+        "procedure f(a: integer);\n"
+        "var b: integer;\n"
+        "var c: real;\n"
+        "begin\n"
+        "c:=a+b;\n"
+        "write(c)\n"
+        "end;\n"
+        "\n"
+        "begin\n"
+        "f(1)\n"
+        "end.\n");
+
+    const std::string expected =
+        "jump.i #L0\n"
+        "f:\n"
+        "enter.i #24\n"
+        "add.i *BP+8,BP-4,BP-16\n"
+        "inttoreal.i BP-16,BP-24\n"
+        "mov.r BP-24,BP-12\n"
+        "write.r BP-12\n"
+        "leave\n"
+        "return\n"
+        "L0:\n"
+        "mov.i #1,4\n"
+        "push.i #4\n"
+        "call.i #f\n"
+        "incsp.i #4\n"
+        "exit\n";
+
+    std::ostringstream output;
+    Driver driver(output, input);
+
+    ASSERT_EQ(driver.parse(), 0);
+    ASSERT_EQ(output.str(), expected);
+}
+
 TEST_F(ParseProcedures, ProcedureCanCallOtherProceduresAndFunctions)
 {
     std::istringstream input(

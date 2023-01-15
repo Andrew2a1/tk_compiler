@@ -30,6 +30,7 @@ set(TESTS
     tests/calling_functions.cpp
     tests/procedures.cpp
     tests/functions.cpp
+    tests/bubblesort.cpp
 )
 
 set(FLEX_BISON_FILES

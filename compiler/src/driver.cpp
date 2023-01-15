@@ -99,8 +99,7 @@ void Driver::enter_local_mode(const SymbolTableEntry& function_entry)
     local_symbol_table = SymbolTable{global_symbol_table.label_count, true};
 
     init_function_symbol_table(function_entry);
-
-    local_symbol_table.set_var_offset(4);
+    local_symbol_table.set_var_offset(0);
     output_stream = &local_output;
 }
 
@@ -338,7 +337,10 @@ void Driver::init_function_symbol_table(const SymbolTableEntry& function_entry)
 
         auto type = arg_type;
         type.is_reference = true;
-        local_symbol_table.create_variable(arg_name, type, offset);
+
+        auto& var = local_symbol_table.create_variable(arg_name, type);
+        var.offset = offset;
+
         offset += 4;
     }
 
@@ -354,6 +356,8 @@ void Driver::init_function_symbol_table(const SymbolTableEntry& function_entry)
 
         auto type = return_type;
         type.is_reference = true;
-        local_symbol_table.create_variable(function_name, type, offset);
+
+        auto& var = local_symbol_table.create_variable(function_name, type);
+        var.offset = offset;
     }
 }

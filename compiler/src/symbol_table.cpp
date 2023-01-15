@@ -22,21 +22,21 @@ void SymbolTable::create_variables(const std::vector<std::string> &variable_ids,
 {
     for (const auto &id : variable_ids)
     {
-        create_variable(id, type, global_offset);
+        create_variable(id, type);
     }
 }
 
-SymbolTableEntry &SymbolTable::create_variable(const std::string &variable_name, const Type &type, int offset)
+SymbolTableEntry &SymbolTable::create_variable(const std::string &variable_name, const Type &type)
 {
-    assert(find_symbol(variable_name) == nullptr);
-    symbols.push_back({variable_name, type, SymbolType::Variable, -1, offset, {}, is_local});
-    global_offset += type_size(type);
+    if (is_local) global_offset += type_size(type);
+    symbols.push_back({variable_name, type, SymbolType::Variable, -1, global_offset, {}, is_local});
+    if (!is_local) global_offset += type_size(type);
+
     return symbols.back();
 }
 
 SymbolTableEntry &SymbolTable::create_function(const std::string &function_name)
 {
-    assert(is_local == false);
     symbols.push_back({function_name, Type{VariableType::Integer}, SymbolType::Function, -1, -1, {}});
     return symbols.back();
 }
@@ -100,12 +100,8 @@ SymbolTableEntry &SymbolTable::add_constant(double value, VariableType var_type)
 SymbolTableEntry &SymbolTable::add_tmp(VariableType var_type, bool is_ref)
 {
     const Type type{var_type, is_ref};
-    symbols.push_back({"$t" + std::to_string(tmp_var_count), type, SymbolType::Variable, -1, global_offset, {}, is_local});
-
-    global_offset += type_size(type);
     tmp_var_count += 1;
-
-    return symbols.back();
+    return create_variable("$t" + std::to_string(tmp_var_count), type);
 }
 
 SymbolTableEntry &SymbolTable::add_label()
