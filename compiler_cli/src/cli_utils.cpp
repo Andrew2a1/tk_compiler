@@ -21,7 +21,7 @@ std::string var_type_to_str(const Type &var_type)
 
     if (var_type.is_array())
     {
-        const auto &array_info = var_type.type_info.value();
+        const auto &array_info = var_type.array_info.value();
         ss << '[' << array_info.start_index << ".." << array_info.end_index << ']';
     }
     else

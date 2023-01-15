@@ -80,23 +80,23 @@
 %token <int> INT_NUMBER
 %token <double> REAL_NUMBER
 
-%nterm <SymbolTableEntry*> id
-%nterm <SymbolTableEntry*> variable
-%nterm <SymbolTableEntry*> expression
-%nterm <SymbolTableEntry*> statement
-%nterm <SymbolTableEntry*> procedure_statement
-%nterm <SymbolTableEntry*> simple_expression
-%nterm <SymbolTableEntry*> term
-%nterm <SymbolTableEntry*> factor
+%nterm <const SymbolTableEntry*> id
+%nterm <const SymbolTableEntry*> variable
+%nterm <const SymbolTableEntry*> statement
+%nterm <const SymbolTableEntry*> procedure_statement
+%nterm <const SymbolTableEntry*> simple_expression
+%nterm <const SymbolTableEntry*> expression
+%nterm <const SymbolTableEntry*> factor
+%nterm <const SymbolTableEntry*> term
+%nterm <const SymbolTableEntry*> subprogram_head
+%nterm <const SymbolTableEntry*> declarations
 %nterm <Type> type
-%nterm <SymbolTableEntry*> subprogram_head
-%nterm <SymbolTableEntry*> declarations
 %nterm <VariableType> standard_type
 %nterm <std::vector<std::string>> identifier_list
-%nterm <std::vector<SymbolTableEntry*>> expression_list
-%nterm <std::vector<std::pair<std::string, Type>>> parameter_list
 %nterm <std::vector<std::pair<std::string, Type>>> arguments
-%nterm <std::vector<SymbolTableEntry*>> empty
+%nterm <std::vector<std::pair<std::string, Type>>> parameter_list
+%nterm <std::vector<const SymbolTableEntry*>> expression_list
+%nterm <std::vector<const SymbolTableEntry*>> empty
 
 %%
 
@@ -274,9 +274,7 @@ procedure_statement:
         $$ = drv.genfunc_call(*($1), {});
     }
     | id LPAREN expression_list RPAREN {
-        const auto &id_entry = *($1);
-        const auto &expr_entry = $3;
-        $$ = drv.genfunc_call(id_entry, expr_entry);
+        $$ = drv.genfunc_call(*($1), $3);
     }
 
 empty: %empty { $$ = {}; }
@@ -286,8 +284,7 @@ variable:
         $$ = $1;
     }
     | id LSBRACKET expression RSBRACKET {
-        auto &array_entry = drv.genarray_get(*($1), *($3));
-        $$ = &array_entry;
+        $$ = &drv.genarray_get(*($1), *($3));
     }
     ;
 
@@ -313,22 +310,22 @@ expression_list:
 expression:
     simple_expression
     | simple_expression EQ simple_expression {
-        $$ = &drv.gencode_relop("je", *($1), *($3));
+        $$ = &drv.genrelop("je", *($1), *($3));
     }
     | simple_expression NE simple_expression {
-        $$ = &drv.gencode_relop("jne", *($1), *($3));
+        $$ = &drv.genrelop("jne", *($1), *($3));
     }
     | simple_expression LE simple_expression {
-        $$ = &drv.gencode_relop("jle", *($1), *($3));
+        $$ = &drv.genrelop("jle", *($1), *($3));
     }
     | simple_expression GE simple_expression {
-        $$ = &drv.gencode_relop("jge", *($1), *($3));
+        $$ = &drv.genrelop("jge", *($1), *($3));
     }
     | simple_expression LO simple_expression {
-        $$ = &drv.gencode_relop("jl", *($1), *($3));
+        $$ = &drv.genrelop("jl", *($1), *($3));
     }
     | simple_expression GR simple_expression {
-        $$ = &drv.gencode_relop("jg", *($1), *($3));
+        $$ = &drv.genrelop("jg", *($1), *($3));
     }
     ;
 
@@ -338,7 +335,7 @@ simple_expression:
         const auto &term = *($2);
         const auto &term_type = term.var_type.type;
         const auto &zero_const = drv.symbol_table().add_constant(0, term_type);
-        auto &result_var = drv.symbol_table().add_tmp(term_type);
+        const auto &result_var = drv.symbol_table().add_tmp(term_type);
         drv.gencode("sub", zero_const, term, result_var);
         $$ = &result_var;
     }
@@ -346,39 +343,39 @@ simple_expression:
         $$ = $2;
     }
     | simple_expression MINUS term {
-        $$ = &drv.gencode_conversions("sub", *($1), *($3));
+        $$ = &drv.genop_with_conversions("sub", *($1), *($3));
     }
     | simple_expression PLUS term {
-        $$ = &drv.gencode_conversions("add", *($1), *($3));
+        $$ = &drv.genop_with_conversions("add", *($1), *($3));
     }
     | simple_expression OR term {
-        $$ = &drv.gencode_conversions("or", *($1), *($3));
+        $$ = &drv.genop_with_conversions("or", *($1), *($3));
     }
     ;
 
 term:
     factor
     | term STAR factor {
-        $$ = &drv.gencode_conversions("mul", *($1), *($3));
+        $$ = &drv.genop_with_conversions("mul", *($1), *($3));
     }
     | term SLASH factor {
-        $$ = &drv.gencode_conversions("div", *($1), *($3));
+        $$ = &drv.genop_with_conversions("div", *($1), *($3));
     }
     | term DIV factor {
-        $$ = &drv.gencode_conversions("div", *($1), *($3));
+        $$ = &drv.genop_with_conversions("div", *($1), *($3));
     }
     | term MOD factor {
-        $$ = &drv.gencode_conversions("mod", *($1), *($3));
+        $$ = &drv.genop_with_conversions("mod", *($1), *($3));
     }
     | term AND factor {
-        $$ = &drv.gencode_conversions("and", *($1), *($3));
+        $$ = &drv.genop_with_conversions("and", *($1), *($3));
     }
     ;
 
 factor:
     variable
     | id LPAREN expression_list RPAREN {
-        auto *func_call = drv.genfunc_call(*($1), $3);
+        const auto *func_call = drv.genfunc_call(*($1), $3);
         if(func_call == nullptr) {
             throw std::runtime_error("Function '" + ($1)->id + "' does not return value");
         }
@@ -394,17 +391,17 @@ factor:
         $$ = $2;
     }
     | NOT factor {
-        auto &factor = *($2);
-        const auto &factor_type = factor.var_type.type;
+        const auto *factor = $2;
+        const auto &factor_type = factor->var_type.type;
 
         if(factor_type == VariableType::Real) {
-            auto &conversion_var = drv.symbol_table().add_tmp(VariableType::Integer);
-            drv.gencode("realtoint", factor, conversion_var);
-            factor = conversion_var;
+            const auto &conversion_var = drv.symbol_table().add_tmp(VariableType::Integer);
+            drv.gencode("realtoint", *factor, conversion_var);
+            factor = &conversion_var;
         }
 
-        auto &result_var = drv.symbol_table().add_tmp(VariableType::Integer);
-        drv.gencode("not.i", factor, result_var, false);
+        const auto &result_var = drv.symbol_table().add_tmp(VariableType::Integer);
+        drv.gencode("not.i", *factor, result_var, false);
         $$ = &result_var;
     }
     ;

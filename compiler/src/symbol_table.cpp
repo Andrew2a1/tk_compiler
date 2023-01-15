@@ -51,7 +51,7 @@ int SymbolTable::type_size(const Type &var_type) const
     const int base_size = type_size(var_type.type);
     if (var_type.is_array())
     {
-        const auto &array_info = var_type.type_info.value();
+        const auto &array_info = var_type.array_info.value();
         return base_size * (array_info.end_index - array_info.start_index + 1);
     }
 

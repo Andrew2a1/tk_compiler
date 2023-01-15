@@ -37,17 +37,15 @@ private:
 
 public:
     Driver(std::ostream& output, std::istream& input);
-
     int parse();
+
     SymbolTable& symbol_table();
 
     void set_debug(bool trace_scanning = false, bool trace_parsing = false);
     void set_location_filename(const std::string& filename);
 
     void error(const std::string& message);
-    SymbolTableEntry* find_symbol(const std::string& name);
-
-    void enter_function_mode(const SymbolTableEntry& function_entry_idx);
+    void enter_function_mode(const SymbolTableEntry& function_entry);
     void leave_function_mode();
 
     void gencode(const std::string& code);
@@ -56,16 +54,19 @@ public:
     void gencode(const std::string& code, const SymbolTableEntry& op1, const SymbolTableEntry& op2, const SymbolTableEntry& op3,
                  bool generate_instr_postfix = true);
 
-    void gencode_push(SymbolTableEntry& op);
-
+    void gencode_push(const SymbolTableEntry& op);
     void genlabel(const SymbolTableEntry& label);
-    SymbolTableEntry* genfunc_call(const SymbolTableEntry& function_entry, const std::vector<SymbolTableEntry*>& arguments);
-    SymbolTableEntry& genarray_get(SymbolTableEntry& function_entry, const SymbolTableEntry& expr);
 
-    SymbolTableEntry& convert_if_needed(SymbolTableEntry& argument, VariableType target_type);
-    SymbolTableEntry& gencode_conversions(const std::string& code, const SymbolTableEntry& op1, const SymbolTableEntry& op2);
-    SymbolTableEntry& gencode_relop(const std::string& relop_code, const SymbolTableEntry& op1, const SymbolTableEntry& op2);
+    const SymbolTableEntry* find_symbol(const std::string& name);
+    const SymbolTableEntry* genfunc_call(const SymbolTableEntry& function_entry, const std::vector<const SymbolTableEntry*>& arguments);
+    const SymbolTableEntry& genarray_get(const SymbolTableEntry& array, const SymbolTableEntry& expr);
+    const SymbolTableEntry& genop_with_conversions(const std::string& code, const SymbolTableEntry& op1, const SymbolTableEntry& op2);
+    const SymbolTableEntry& genrelop(const std::string& relop_code, const SymbolTableEntry& op1, const SymbolTableEntry& op2);
+    const SymbolTableEntry& convert_if_needed(const SymbolTableEntry& argument, VariableType target_type);
 
 private:
     void geninstr(const std::string& code, VariableType instr_type, bool generate_instr_postfix);
+    const SymbolTableEntry* check_function(const SymbolTableEntry& function_entry, const std::vector<const SymbolTableEntry*>& arguments);
+    void gen_function_argument_passing(const SymbolTableEntry& function_entry, const std::vector<const SymbolTableEntry*>& arguments);
+    void init_function_symbol_table(const SymbolTableEntry& function_entry);
 };

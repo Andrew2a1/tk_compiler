@@ -21,9 +21,8 @@ struct Type
 {
     VariableType type;
     bool is_reference = false;
+    std::optional<ArrayTypeInfo> array_info = std::nullopt;
 
-    std::optional<ArrayTypeInfo> type_info = std::nullopt;
-
-    bool is_array() const { return type_info.has_value(); }
+    bool is_array() const { return array_info.has_value(); }
     bool operator==(const Type &other) const;
 };

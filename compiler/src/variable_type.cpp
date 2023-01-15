@@ -21,8 +21,8 @@ bool Type::operator==(const Type &other) const
 
     if (is_array() && other.is_array())
     {
-        const auto &self_type_info = type_info.value();
-        const auto &other_type_info = other.type_info.value();
+        const auto &self_type_info = array_info.value();
+        const auto &other_type_info = other.array_info.value();
         return (self_type_info.start_index == other_type_info.start_index) && (self_type_info.end_index == other_type_info.end_index);
     }
     else if (is_array() || other.is_array())
